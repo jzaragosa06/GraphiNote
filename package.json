@@ -1,0 +1,20 @@
+{
+  "name": "interactive-note-prototye",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "interactive-note",
+    "prototype"
+  ],
+  "author": "Jun Jun M. Zaragosa",
+  "license": "MIT",
+  "description": "An interactive note app involving graphics and connections",
+  "dependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
