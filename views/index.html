@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js"></script>
+    <style>
+        .note-container {
+            position: absolute;
+            min-width: 200px;
+            min-height: 100px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px;
+            user-select: none;
+            display: inline-block;
+        }
+
+        .note-container.dragging {
+            cursor: grabbing;
+            opacity: 0.9;
+        }
+
+        .drag-handle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 25px;
+            background: #e0e0e0;
+            border-radius: 8px 8px 0 0;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        .add-button {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 24px;
+            height: 24px;
+            background: #4CAF50;
+            border-radius: 50%;
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            border: none;
+            z-index: 100;
+        }
+
+        .note-container:hover .add-button {
+            display: flex;
+        }
+
+        #app {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        .note-content {
+            outline: none;
+            min-height: 50px;
+            margin-top: 25px;
+            cursor: text;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <script>
+        const app = document.getElementById('app');
+        const lines = new Map();
+        let activeNote = null;
+        let initialX = 0;
+        let initialY = 0;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        function createNote(x, y, parentNote = null)
+        {
+            const note = document.createElement('div');
+            note.className = 'note-container';
+            note.style.left = `${x}px`;
+            note.style.top = `${y}px`;
+
+            // Create drag handle
+            const dragHandle = document.createElement('div');
+            dragHandle.className = 'drag-handle';
+            dragHandle.textContent = '⋮⋮'; // Add visual indicator for drag handle
+
+            const content = document.createElement('div');
+            content.className = 'note-content';
+            content.contentEditable = true;
+            content.textContent = 'Enter your text here...';
+
+            const addButton = document.createElement('button');
+            addButton.className = 'add-button';
+            addButton.textContent = '+';
+
+            note.appendChild(dragHandle);
+            note.appendChild(content);
+            note.appendChild(addButton);
+            app.appendChild(note);
+
+            // Drag functionality
+            dragHandle.addEventListener('mousedown', dragStart);
+
+            function dragStart(e)
+            {
+                if (e.target === content) return;
+
+                activeNote = note;
+                note.classList.add('dragging');
+
+                initialX = e.clientX - note.offsetLeft;
+                initialY = e.clientY - note.offsetTop;
+            }
+
+            // Add new connected note
+            addButton.addEventListener('click', () =>
+            {
+                const newNote = createNote(
+                    parseInt(note.style.left) + 250,
+                    parseInt(note.style.top),
+                    note
+                );
+
+                const line = new LeaderLine(
+                    note,
+                    newNote,
+                    {
+                        color: '#999',
+                        size: 2,
+                        path: 'straight',
+                        startSocket: 'right',
+                        endSocket: 'left'
+                    }
+                );
+
+                lines.set(newNote, {
+                    line,
+                    parent: note
+                });
+            });
+
+            return note;
+        }
+
+        // Global mouse events
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', dragEnd);
+
+        function drag(e)
+        {
+            if (activeNote)
+            {
+                e.preventDefault();
+
+                const currentX = e.clientX - initialX;
+                const currentY = e.clientY - initialY;
+
+                activeNote.style.left = `${currentX}px`;
+                activeNote.style.top = `${currentY}px`;
+
+                // Update lines
+                updateLines();
+            }
+        }
+
+        function dragEnd(e)
+        {
+            if (activeNote)
+            {
+                activeNote.classList.remove('dragging');
+                activeNote = null;
+            }
+        }
+
+        function updateLines()
+        {
+            lines.forEach(({ line, parent }, child) =>
+            {
+                line.position();
+            });
+        }
+
+        // Create initial note
+        const firstNote = createNote(100, 100);
+    </script>
+</body>
+
+</html>
