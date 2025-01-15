@@ -52,18 +52,22 @@
             position: absolute;
             width: 200px;
             /* Fixed width */
+            min-height: 100px;
             border-radius: 8px;
             padding: 16px;
             margin: 20px;
             user-select: none;
             display: inline-block;
             transition: background-color 0.3s ease;
-            word-wrap: break-word;
-            /* Prevent horizontal resizing by wrapping text */
-            white-space: normal;
-            /* Allow text to wrap to the next line */
-            overflow: visible;
-            /* Ensure height adjusts dynamically */
+            resize: both;
+            /* Enable resizing */
+            overflow: hidden;
+            /* Hide resize handle when not hovered */
+        }
+
+        .note-container:hover {
+            overflow: auto;
+            /* Show resize handle on hover */
         }
 
         .note-container.dragging {
@@ -125,8 +129,39 @@
 
         .note-content {
             outline: none;
+            min-height: 50px;
             margin-top: 25px;
             cursor: text;
+            word-wrap: break-word;
+            /* Enable text wrapping */
+            white-space: pre-wrap;
+            /* Preserve line breaks and spaces */
+            overflow-wrap: break-word;
+            /* Break long words if needed */
+            width: 100%;
+        }
+
+        /* Custom resize handles */
+        .resize-handle {
+            position: absolute;
+            background: transparent;
+            z-index: 90;
+        }
+
+        .resize-handle.bottom-right {
+            bottom: 0;
+            right: 0;
+            width: 15px;
+            height: 15px;
+            cursor: se-resize;
+        }
+
+        .resize-handle.bottom-left {
+            bottom: 0;
+            left: 0;
+            width: 15px;
+            height: 15px;
+            cursor: sw-resize;
         }
     </style>
 </head>
@@ -141,6 +176,7 @@
     <div id="app"></div>
 
     <script>
+        // Previous JavaScript remains the same until createNote function
         const app = document.getElementById('app');
         const addNewContainerBtn = document.getElementById('addNewContainer');
         let activeNote = null;
@@ -149,19 +185,20 @@
         let connectingMode = false;
         let sourceNote = null;
         const connections = new Map();
-
-        // Store origin colors
         const originColors = new Map();
         let colorIndex = 0;
+        let resizingNote = null;
+        let resizeHandle = null;
+        let initialWidth = 0;
+        let initialHeight = 0;
 
-        // Define base colors for different origins (light, monochromatic colors)
         const baseColors = [
-            { h: 200, s: 30, l: 90 }, // Light blue family
-            { h: 150, s: 30, l: 90 }, // Light green family
-            { h: 25, s: 30, l: 90 },  // Light orange family
-            { h: 280, s: 30, l: 90 }, // Light purple family
-            { h: 350, s: 30, l: 90 }, // Light pink family
-            { h: 60, s: 30, l: 90 },  // Light yellow family
+            { h: 200, s: 30, l: 90 },
+            { h: 150, s: 30, l: 90 },
+            { h: 25, s: 30, l: 90 },
+            { h: 280, s: 30, l: 90 },
+            { h: 350, s: 30, l: 90 },
+            { h: 60, s: 30, l: 90 },
         ];
 
         function getColorForOrigin(origin)
@@ -182,10 +219,8 @@
             note.style.left = `${x}px`;
             note.style.top = `${y}px`;
 
-            // Set origin - if no originNote provided, this note becomes its own origin
             note.originNote = originNote || note;
 
-            // Apply color based on origin
             const color = getColorForOrigin(note.originNote);
             note.style.backgroundColor = `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
 
@@ -213,6 +248,16 @@
             connectButton.textContent = '↔';
             connectButton.title = 'Connect to another note';
 
+            // Add resize observer for dynamic height
+            const resizeObserver = new ResizeObserver(entries =>
+            {
+                for (let entry of entries)
+                {
+                    updateLines(note);
+                }
+            });
+            resizeObserver.observe(note);
+
             note.appendChild(dragHandle);
             note.appendChild(content);
             note.appendChild(addButton);
@@ -239,7 +284,7 @@
                     parseInt(note.style.left) + 250,
                     parseInt(note.style.top),
                     note,
-                    note.originNote // Pass the original origin
+                    note.originNote
                 );
 
                 createConnection(note, newNote);
@@ -263,9 +308,14 @@
                 exitConnectingMode();
             });
 
+            // Make the note resizable
+            note.style.resize = 'both';
+            note.style.overflow = 'hidden';
+
             return note;
         }
 
+        // Rest of the JavaScript remains the same
         function createConnection(from, to)
         {
             const line = new LeaderLine(
@@ -317,7 +367,7 @@
             const x = Math.random() * (appRect.width - 300) + 220;
             const y = Math.random() * (appRect.height - 200) + 50;
 
-            createNote(x, y); // New container becomes its own origin
+            createNote(x, y);
         });
 
         let animationFrameId = null;
