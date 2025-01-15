@@ -4,6 +4,51 @@
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 200px;
+            height: 100vh;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .sidebar-button {
+            width: 100%;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+
+        .sidebar-button:hover {
+            background: #45a049;
+        }
+
+        /* Main Content Area */
+        #app {
+            position: relative;
+            margin-left: 200px;
+            width: calc(100% - 200px);
+            height: 100vh;
+            overflow: auto;
+            padding: 20px;
+        }
+
         .note-container {
             position: absolute;
             min-width: 200px;
@@ -57,14 +102,6 @@
             display: flex;
         }
 
-        #app {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            overflow: auto;
-            padding: 20px;
-        }
-
         .note-content {
             outline: none;
             min-height: 50px;
@@ -75,10 +112,19 @@
 </head>
 
 <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <button class="sidebar-button" id="addNewContainer">
+            Add New Container
+        </button>
+    </div>
+
+    <!-- Main Content -->
     <div id="app"></div>
 
     <script>
         const app = document.getElementById('app');
+        const addNewContainerBtn = document.getElementById('addNewContainer');
         const lines = new Map();
         let activeNote = null;
         let initialX = 0;
@@ -96,7 +142,7 @@
             // Create drag handle
             const dragHandle = document.createElement('div');
             dragHandle.className = 'drag-handle';
-            dragHandle.textContent = '⋮⋮'; // Add visual indicator for drag handle
+            dragHandle.textContent = '⋮⋮';
 
             const content = document.createElement('div');
             content.className = 'note-content';
@@ -156,6 +202,18 @@
             return note;
         }
 
+        // Add new unconnected container from sidebar
+        addNewContainerBtn.addEventListener('click', () =>
+        {
+            // Calculate position for new container
+            // Get random position within visible area of app
+            const appRect = app.getBoundingClientRect();
+            const x = Math.random() * (appRect.width - 300) + 220; // Adding 220 to account for sidebar
+            const y = Math.random() * (appRect.height - 200) + 50;
+
+            createNote(x, y);
+        });
+
         // Global mouse events
         document.addEventListener('mousemove', drag);
         document.addEventListener('mouseup', dragEnd);
@@ -195,7 +253,7 @@
         }
 
         // Create initial note
-        const firstNote = createNote(100, 100);
+        const firstNote = createNote(300, 100);
     </script>
 </body>
 
