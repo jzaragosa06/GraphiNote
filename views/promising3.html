@@ -51,7 +51,6 @@
         .note-container {
             position: absolute;
             width: 200px;
-            /* Fixed width */
             border-radius: 8px;
             padding: 16px;
             margin: 20px;
@@ -59,11 +58,8 @@
             display: inline-block;
             transition: background-color 0.3s ease;
             word-wrap: break-word;
-            /* Prevent horizontal resizing by wrapping text */
             white-space: normal;
-            /* Allow text to wrap to the next line */
             overflow: visible;
-            /* Ensure height adjusts dynamically */
         }
 
         .note-container.dragging {
@@ -91,7 +87,8 @@
         }
 
         .add-button,
-        .connect-button {
+        .connect-button,
+        .expand-button {
             position: absolute;
             width: 24px;
             height: 24px;
@@ -118,8 +115,15 @@
             background: #2196F3;
         }
 
+        .expand-button {
+            top: -10px;
+            left: -10px;
+            background: #FF9800;
+        }
+
         .note-container:hover .add-button,
-        .note-container:hover .connect-button {
+        .note-container:hover .connect-button,
+        .note-container:hover .expand-button {
             display: flex;
         }
 
@@ -129,7 +133,6 @@
             cursor: text;
         }
 
-        /* Add this to your existing CSS */
         .connection-point {
             position: absolute;
             width: 12px;
@@ -187,28 +190,38 @@
             }
         }
 
-        .delete-button {
-            position: absolute;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            color: white;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 18px;
-            border: none;
-            z-index: 100;
-            background: #ff4d4d;
-            /* Red color for delete button */
-            top: -10px;
-            right: 30px;
-            /* Position it to the left of the add button */
+        /* Side Panel Styles */
+        .side-panel {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: #fff;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 1001;
+            padding: 20px;
         }
 
-        .note-container:hover .delete-button {
-            display: flex;
+        .side-panel.open {
+            right: 0;
+        }
+
+        .side-panel-content {
+            margin-top: 20px;
+        }
+
+        .collapse-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #FF9800;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -222,9 +235,18 @@
 
     <div id="app"></div>
 
+    <!-- Side Panel -->
+    <div class="side-panel" id="sidePanel">
+        <button class="collapse-button" id="collapseButton">Collapse</button>
+        <div class="side-panel-content" id="sidePanelContent"></div>
+    </div>
+
     <script>
         const app = document.getElementById('app');
         const addNewContainerBtn = document.getElementById('addNewContainer');
+        const sidePanel = document.getElementById('sidePanel');
+        const sidePanelContent = document.getElementById('sidePanelContent');
+        const collapseButton = document.getElementById('collapseButton');
         let activeNote = null;
         let initialX = 0;
         let initialY = 0;
@@ -257,7 +279,6 @@
             return originColors.get(origin);
         }
 
-        /*
         function createNote(x, y, parentNote = null, originNote = null)
         {
             const note = document.createElement('div');
@@ -291,9 +312,15 @@
             addButton.textContent = '+';
             addButton.title = 'Add connected note';
 
+            const expandButton = document.createElement('button');
+            expandButton.className = 'expand-button';
+            expandButton.textContent = '↗';
+            expandButton.title = 'Expand note';
+
             note.appendChild(dragHandle);
             note.appendChild(content);
             note.appendChild(addButton);
+            note.appendChild(expandButton);
             app.appendChild(note);
 
             dragHandle.addEventListener('mousedown', dragStart);
@@ -322,7 +349,11 @@
                 createConnection(note, newNote);
             });
 
-
+            expandButton.addEventListener('click', () =>
+            {
+                sidePanelContent.innerHTML = content.innerHTML;
+                sidePanel.classList.add('open');
+            });
 
             note.addEventListener('click', (e) =>
             {
@@ -346,124 +377,11 @@
             return note;
         }
 
-        */
-
-        function createNote(x, y, parentNote = null, originNote = null)
+        collapseButton.addEventListener('click', () =>
         {
-            const note = document.createElement('div');
-            note.className = 'note-container';
-            note.style.left = `${x}px`;
-            note.style.top = `${y}px`;
+            sidePanel.classList.remove('open');
+        });
 
-            // Set origin - if no originNote provided, this note becomes its own origin
-            note.originNote = originNote || note;
-
-            // Apply color based on origin
-            const color = getColorForOrigin(note.originNote);
-            note.style.backgroundColor = `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
-
-            connections.set(note, {
-                incoming: [],
-                outgoing: []
-            });
-
-            const dragHandle = document.createElement('div');
-            dragHandle.className = 'drag-handle';
-            dragHandle.textContent = '⋮⋮';
-
-            const content = document.createElement('div');
-            content.className = 'note-content';
-            content.contentEditable = true;
-            content.textContent = 'Enter your text here...';
-
-            const addButton = document.createElement('button');
-            addButton.className = 'add-button';
-            addButton.textContent = '+';
-            addButton.title = 'Add connected note';
-
-            const deleteButton = document.createElement('button');
-            deleteButton.className = 'delete-button';
-            deleteButton.textContent = '×';
-            deleteButton.title = 'Delete note';
-
-            note.appendChild(dragHandle);
-            note.appendChild(content);
-            note.appendChild(addButton);
-            note.appendChild(deleteButton);
-            app.appendChild(note);
-
-            dragHandle.addEventListener('mousedown', dragStart);
-
-            function dragStart(e)
-            {
-                if (e.target === content) return;
-                if (connectingMode) return;
-
-                activeNote = note;
-                note.classList.add('dragging');
-
-                initialX = e.clientX - note.offsetLeft;
-                initialY = e.clientY - note.offsetTop;
-            }
-
-            addButton.addEventListener('click', () =>
-            {
-                const newNote = createNote(
-                    parseInt(note.style.left) + 250,
-                    parseInt(note.style.top),
-                    note,
-                    note.originNote // Pass the original origin
-                );
-
-                createConnection(note, newNote);
-            });
-
-            deleteButton.addEventListener('click', () =>
-            {
-                // Remove all connections associated with this note
-                const noteConnections = connections.get(note);
-                noteConnections.incoming.forEach(conn =>
-                {
-                    conn.line.remove();
-                    const sourceConnections = connections.get(conn.source);
-                    sourceConnections.outgoing = sourceConnections.outgoing.filter(out => out.target !== note);
-                });
-                noteConnections.outgoing.forEach(conn =>
-                {
-                    conn.line.remove();
-                    const targetConnections = connections.get(conn.target);
-                    targetConnections.incoming = targetConnections.incoming.filter(incoming => incoming.source !== note);
-                });
-
-                // Remove the note from the connections map
-                connections.delete(note);
-
-                // Remove the note from the DOM
-                note.remove();
-            });
-
-            note.addEventListener('click', (e) =>
-            {
-                if (!connectingMode || note === sourceNote) return;
-
-                createConnection(sourceNote, note);
-                exitConnectingMode();
-            });
-
-            // Add connection points
-            const positions = ['top', 'right', 'bottom', 'left'];
-            positions.forEach(pos =>
-            {
-                const point = document.createElement('div');
-                point.className = `connection-point ${pos}`;
-                point.dataset.position = pos;
-                point.addEventListener('mousedown', startConnection);
-                note.appendChild(point);
-            });
-
-            return note;
-        }
-        
         let tempLine = null;
         let startPoint = null;
 
