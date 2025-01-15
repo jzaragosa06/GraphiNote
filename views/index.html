@@ -52,12 +52,12 @@
             position: absolute;
             min-width: 200px;
             min-height: 100px;
-            background: #f0f0f0;
             border-radius: 8px;
             padding: 16px;
             margin: 20px;
             user-select: none;
             display: inline-block;
+            transition: background-color 0.3s ease;
         }
 
         .note-container.dragging {
@@ -75,7 +75,7 @@
             left: 0;
             right: 0;
             height: 25px;
-            background: #e0e0e0;
+            background: rgba(0, 0, 0, 0.1);
             border-radius: 8px 8px 0 0;
             cursor: grab;
             display: flex;
@@ -143,18 +143,47 @@
         let initialY = 0;
         let connectingMode = false;
         let sourceNote = null;
-
-        // Store both incoming and outgoing connections for each note
         const connections = new Map();
 
-        function createNote(x, y, parentNote = null)
+        // Store origin colors
+        const originColors = new Map();
+        let colorIndex = 0;
+
+        // Define base colors for different origins (light, monochromatic colors)
+        const baseColors = [
+            { h: 200, s: 30, l: 90 }, // Light blue family
+            { h: 150, s: 30, l: 90 }, // Light green family
+            { h: 25, s: 30, l: 90 },  // Light orange family
+            { h: 280, s: 30, l: 90 }, // Light purple family
+            { h: 350, s: 30, l: 90 }, // Light pink family
+            { h: 60, s: 30, l: 90 },  // Light yellow family
+        ];
+
+        function getColorForOrigin(origin)
+        {
+            if (!originColors.has(origin))
+            {
+                const baseColor = baseColors[colorIndex % baseColors.length];
+                originColors.set(origin, baseColor);
+                colorIndex++;
+            }
+            return originColors.get(origin);
+        }
+
+        function createNote(x, y, parentNote = null, originNote = null)
         {
             const note = document.createElement('div');
             note.className = 'note-container';
             note.style.left = `${x}px`;
             note.style.top = `${y}px`;
 
-            // Initialize connections storage
+            // Set origin - if no originNote provided, this note becomes its own origin
+            note.originNote = originNote || note;
+
+            // Apply color based on origin
+            const color = getColorForOrigin(note.originNote);
+            note.style.backgroundColor = `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
+
             connections.set(note, {
                 incoming: [],
                 outgoing: []
@@ -204,7 +233,8 @@
                 const newNote = createNote(
                     parseInt(note.style.left) + 250,
                     parseInt(note.style.top),
-                    note
+                    note,
+                    note.originNote // Pass the original origin
                 );
 
                 createConnection(note, newNote);
@@ -245,7 +275,6 @@
                 }
             );
 
-            // Store the connection in both directions
             connections.get(from).outgoing.push({ target: to, line });
             connections.get(to).incoming.push({ source: from, line });
         }
@@ -283,10 +312,9 @@
             const x = Math.random() * (appRect.width - 300) + 220;
             const y = Math.random() * (appRect.height - 200) + 50;
 
-            createNote(x, y);
+            createNote(x, y); // New container becomes its own origin
         });
 
-        // Improved drag handling
         let animationFrameId = null;
 
         function drag(e)
@@ -301,7 +329,6 @@
                 activeNote.style.left = `${currentX}px`;
                 activeNote.style.top = `${currentY}px`;
 
-                // Use requestAnimationFrame for smooth line updates
                 if (animationFrameId)
                 {
                     cancelAnimationFrame(animationFrameId);
@@ -319,10 +346,7 @@
             if (activeNote)
             {
                 activeNote.classList.remove('dragging');
-
-                // Final update of lines
                 updateLines(activeNote);
-
                 activeNote = null;
                 if (animationFrameId)
                 {
@@ -338,13 +362,11 @@
 
             const noteConnections = connections.get(note);
 
-            // Update incoming connections
             noteConnections.incoming.forEach(conn =>
             {
                 conn.line.position();
             });
 
-            // Update outgoing connections
             noteConnections.outgoing.forEach(conn =>
             {
                 conn.line.position();
