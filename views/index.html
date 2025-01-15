@@ -128,6 +128,64 @@
             margin-top: 25px;
             cursor: text;
         }
+
+        /* Add this to your existing CSS */
+        .connection-point {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #2196F3;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1000;
+            display: none;
+        }
+
+        .note-container:hover .connection-point {
+            display: block;
+        }
+
+        .connection-point.top {
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .connection-point.right {
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .connection-point.bottom {
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .connection-point.left {
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .temp-line {
+            position: absolute;
+            border: 2px dashed #2196F3;
+            pointer-events: none;
+            z-index: 999;
+            animation: dashAnimation 1s linear infinite;
+        }
+
+        @keyframes dashAnimation {
+            from {
+                stroke-dashoffset: 10;
+            }
+
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
     </style>
 </head>
 
@@ -208,15 +266,9 @@
             addButton.textContent = '+';
             addButton.title = 'Add connected note';
 
-            const connectButton = document.createElement('button');
-            connectButton.className = 'connect-button';
-            connectButton.textContent = '↔';
-            connectButton.title = 'Connect to another note';
-
             note.appendChild(dragHandle);
             note.appendChild(content);
             note.appendChild(addButton);
-            note.appendChild(connectButton);
             app.appendChild(note);
 
             dragHandle.addEventListener('mousedown', dragStart);
@@ -245,15 +297,7 @@
                 createConnection(note, newNote);
             });
 
-            connectButton.addEventListener('click', () =>
-            {
-                if (connectingMode)
-                {
-                    exitConnectingMode();
-                    return;
-                }
-                enterConnectingMode(note);
-            });
+
 
             note.addEventListener('click', (e) =>
             {
@@ -263,10 +307,95 @@
                 exitConnectingMode();
             });
 
+            // Add connection points
+            const positions = ['top', 'right', 'bottom', 'left'];
+            positions.forEach(pos =>
+            {
+                const point = document.createElement('div');
+                point.className = `connection-point ${pos}`;
+                point.dataset.position = pos;
+                point.addEventListener('mousedown', startConnection);
+                note.appendChild(point);
+            });
+
             return note;
         }
 
-        function createConnection(from, to)
+        let tempLine = null;
+        let startPoint = null;
+
+        function startConnection(e)
+        {
+            e.stopPropagation();
+            const point = e.target;
+            const sourceNote = point.parentElement;
+            const position = point.dataset.position;
+            startPoint = {
+                note: sourceNote,
+                position: position,
+                x: sourceNote.offsetLeft + (position === 'right' ? sourceNote.offsetWidth :
+                    position === 'left' ? 0 : sourceNote.offsetWidth / 2),
+                y: sourceNote.offsetTop + (position === 'bottom' ? sourceNote.offsetHeight :
+                    position === 'top' ? 0 : sourceNote.offsetHeight / 2)
+            };
+
+            // Create temporary line
+            tempLine = document.createElement('div');
+            tempLine.className = 'temp-line';
+            app.appendChild(tempLine);
+
+            document.addEventListener('mousemove', dragConnection);
+            document.addEventListener('mouseup', endConnection);
+        }
+
+        function dragConnection(e)
+        {
+            if (!tempLine || !startPoint) return;
+
+            const endX = e.clientX - app.offsetLeft;
+            const endY = e.clientY - app.offsetTop;
+
+            // Update temporary line position
+            const length = Math.sqrt(Math.pow(endX - startPoint.x, 2) + Math.pow(endY - startPoint.y, 2));
+            const angle = Math.atan2(endY - startPoint.y, endX - startPoint.x);
+
+            tempLine.style.width = `${length}px`;
+            tempLine.style.left = `${startPoint.x}px`;
+            tempLine.style.top = `${startPoint.y}px`;
+            tempLine.style.transform = `rotate(${angle}rad)`;
+            tempLine.style.transformOrigin = '0 0';
+        }
+
+        function endConnection(e)
+        {
+            document.removeEventListener('mousemove', dragConnection);
+            document.removeEventListener('mouseup', endConnection);
+
+            const targetElement = document.elementFromPoint(e.clientX, e.clientY);
+            if (targetElement && targetElement.classList.contains('connection-point'))
+            {
+                const endNote = targetElement.parentElement;
+                const endPosition = targetElement.dataset.position;
+
+                if (endNote !== startPoint.note)
+                {
+                    createConnection(startPoint.note, endNote, {
+                        startSocket: startPoint.position,
+                        endSocket: endPosition
+                    });
+                }
+            }
+
+            if (tempLine)
+            {
+                tempLine.remove();
+                tempLine = null;
+            }
+            startPoint = null;
+        }
+
+        // Modify createConnection function to handle connection points
+        function createConnection(from, to, options = {})
         {
             const line = new LeaderLine(
                 from,
@@ -275,8 +404,8 @@
                     color: '#999',
                     size: 2,
                     path: 'straight',
-                    startSocket: 'right',
-                    endSocket: 'left'
+                    startSocket: options.startSocket || 'right',
+                    endSocket: options.endSocket || 'left'
                 }
             );
 
