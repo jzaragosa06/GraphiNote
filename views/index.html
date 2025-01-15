@@ -4,6 +4,7 @@
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js"></script>
     <style>
+        /* Previous styles remain the same */
         * {
             margin: 0;
             padding: 0;
@@ -50,6 +51,7 @@
         .note-container {
             position: absolute;
             width: 200px;
+            /* Fixed width */
             border-radius: 8px;
             padding: 16px;
             margin: 20px;
@@ -57,8 +59,11 @@
             display: inline-block;
             transition: background-color 0.3s ease;
             word-wrap: break-word;
+            /* Prevent horizontal resizing by wrapping text */
             white-space: normal;
+            /* Allow text to wrap to the next line */
             overflow: visible;
+            /* Ensure height adjusts dynamically */
         }
 
         .note-container.dragging {
@@ -83,55 +88,6 @@
             align-items: center;
             padding: 0 10px;
             gap: 10px;
-        }
-
-        .connection-points {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-        }
-
-        .connection-point {
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            background: #2196F3;
-            border-radius: 50%;
-            cursor: pointer;
-            display: none;
-            pointer-events: auto;
-        }
-
-        .note-container.connecting .connection-point,
-        .note-container:hover .connection-point {
-            display: block;
-        }
-
-        .connection-point.top {
-            top: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .connection-point.right {
-            top: 50%;
-            right: -6px;
-            transform: translateY(-50%);
-        }
-
-        .connection-point.bottom {
-            bottom: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .connection-point.left {
-            top: 50%;
-            left: -6px;
-            transform: translateY(-50%);
         }
 
         .add-button,
@@ -192,18 +148,20 @@
         let initialY = 0;
         let connectingMode = false;
         let sourceNote = null;
-        let sourcePoint = null;
         const connections = new Map();
+
+        // Store origin colors
         const originColors = new Map();
         let colorIndex = 0;
 
+        // Define base colors for different origins (light, monochromatic colors)
         const baseColors = [
-            { h: 200, s: 30, l: 90 },
-            { h: 150, s: 30, l: 90 },
-            { h: 25, s: 30, l: 90 },
-            { h: 280, s: 30, l: 90 },
-            { h: 350, s: 30, l: 90 },
-            { h: 60, s: 30, l: 90 }
+            { h: 200, s: 30, l: 90 }, // Light blue family
+            { h: 150, s: 30, l: 90 }, // Light green family
+            { h: 25, s: 30, l: 90 },  // Light orange family
+            { h: 280, s: 30, l: 90 }, // Light purple family
+            { h: 350, s: 30, l: 90 }, // Light pink family
+            { h: 60, s: 30, l: 90 },  // Light yellow family
         ];
 
         function getColorForOrigin(origin)
@@ -217,40 +175,6 @@
             return originColors.get(origin);
         }
 
-        function createConnectionPoints(note)
-        {
-            const points = document.createElement('div');
-            points.className = 'connection-points';
-
-            const positions = ['top', 'right', 'bottom', 'left'];
-            positions.forEach(position =>
-            {
-                const point = document.createElement('div');
-                point.className = `connection-point ${position}`;
-                point.dataset.position = position;
-
-                point.addEventListener('click', (e) =>
-                {
-                    e.stopPropagation();
-                    if (connectingMode)
-                    {
-                        if (sourceNote !== note)
-                        {
-                            createConnection(sourceNote, note, sourcePoint, position);
-                            exitConnectingMode();
-                        }
-                    } else
-                    {
-                        enterConnectingMode(note, position);
-                    }
-                });
-
-                points.appendChild(point);
-            });
-
-            return points;
-        }
-
         function createNote(x, y, parentNote = null, originNote = null)
         {
             const note = document.createElement('div');
@@ -258,7 +182,10 @@
             note.style.left = `${x}px`;
             note.style.top = `${y}px`;
 
+            // Set origin - if no originNote provided, this note becomes its own origin
             note.originNote = originNote || note;
+
+            // Apply color based on origin
             const color = getColorForOrigin(note.originNote);
             note.style.backgroundColor = `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
 
@@ -286,13 +213,10 @@
             connectButton.textContent = '↔';
             connectButton.title = 'Connect to another note';
 
-            const connectionPoints = createConnectionPoints(note);
-
             note.appendChild(dragHandle);
             note.appendChild(content);
             note.appendChild(addButton);
             note.appendChild(connectButton);
-            note.appendChild(connectionPoints);
             app.appendChild(note);
 
             dragHandle.addEventListener('mousedown', dragStart);
@@ -315,9 +239,10 @@
                     parseInt(note.style.left) + 250,
                     parseInt(note.style.top),
                     note,
-                    note.originNote
+                    note.originNote // Pass the original origin
                 );
-                createConnection(note, newNote, 'right', 'left');
+
+                createConnection(note, newNote);
             });
 
             connectButton.addEventListener('click', () =>
@@ -327,25 +252,21 @@
                     exitConnectingMode();
                     return;
                 }
-                note.classList.add('connecting');
+                enterConnectingMode(note);
+            });
+
+            note.addEventListener('click', (e) =>
+            {
+                if (!connectingMode || note === sourceNote) return;
+
+                createConnection(sourceNote, note);
+                exitConnectingMode();
             });
 
             return note;
         }
 
-        function getSocketForPosition(position)
-        {
-            switch (position)
-            {
-                case 'top': return 'top';
-                case 'right': return 'right';
-                case 'bottom': return 'bottom';
-                case 'left': return 'left';
-                default: return 'auto';
-            }
-        }
-
-        function createConnection(from, to, fromPosition, toPosition)
+        function createConnection(from, to)
         {
             const line = new LeaderLine(
                 from,
@@ -354,8 +275,8 @@
                     color: '#999',
                     size: 2,
                     path: 'straight',
-                    startSocket: getSocketForPosition(fromPosition),
-                    endSocket: getSocketForPosition(toPosition)
+                    startSocket: 'right',
+                    endSocket: 'left'
                 }
             );
 
@@ -363,11 +284,10 @@
             connections.get(to).incoming.push({ source: from, line });
         }
 
-        function enterConnectingMode(note, position)
+        function enterConnectingMode(note)
         {
             connectingMode = true;
             sourceNote = note;
-            sourcePoint = position;
             document.body.style.cursor = 'crosshair';
 
             document.querySelectorAll('.note-container').forEach(container =>
@@ -383,15 +303,22 @@
         {
             connectingMode = false;
             sourceNote = null;
-            sourcePoint = null;
             document.body.style.cursor = 'default';
 
             document.querySelectorAll('.note-container').forEach(container =>
             {
                 container.classList.remove('highlight-connectable');
-                container.classList.remove('connecting');
             });
         }
+
+        addNewContainerBtn.addEventListener('click', () =>
+        {
+            const appRect = app.getBoundingClientRect();
+            const x = Math.random() * (appRect.width - 300) + 220;
+            const y = Math.random() * (appRect.height - 200) + 50;
+
+            createNote(x, y); // New container becomes its own origin
+        });
 
         let animationFrameId = null;
 
@@ -451,18 +378,10 @@
             });
         }
 
-        addNewContainerBtn.addEventListener('click', () =>
-        {
-            const appRect = app.getBoundingClientRect();
-            const x = Math.random() * (appRect.width - 300) + 220;
-            const y = Math.random() * (appRect.height - 200) + 50;
-
-            createNote(x, y);
-        });
-
         document.addEventListener('mousemove', drag);
         document.addEventListener('mouseup', dragEnd);
 
+        // Create initial note
         const firstNote = createNote(300, 100);
     </script>
 </body>
