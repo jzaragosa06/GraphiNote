@@ -4,13 +4,13 @@
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js"></script>
     <style>
+        /* Previous styles remain the same */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Sidebar Styles */
         .sidebar {
             position: fixed;
             left: 0;
@@ -39,7 +39,6 @@
             background: #45a049;
         }
 
-        /* Main Content Area */
         #app {
             position: relative;
             margin-left: 200px;
@@ -66,6 +65,10 @@
             opacity: 0.9;
         }
 
+        .note-container.highlight-connectable {
+            box-shadow: 0 0 0 2px #4CAF50;
+        }
+
         .drag-handle {
             position: absolute;
             top: 0;
@@ -78,15 +81,14 @@
             display: flex;
             align-items: center;
             padding: 0 10px;
+            gap: 10px;
         }
 
-        .add-button {
+        .add-button,
+        .connect-button {
             position: absolute;
-            top: -10px;
-            right: -10px;
             width: 24px;
             height: 24px;
-            background: #4CAF50;
             border-radius: 50%;
             color: white;
             display: none;
@@ -98,7 +100,20 @@
             z-index: 100;
         }
 
-        .note-container:hover .add-button {
+        .add-button {
+            top: -10px;
+            right: -10px;
+            background: #4CAF50;
+        }
+
+        .connect-button {
+            top: -10px;
+            right: 20px;
+            background: #2196F3;
+        }
+
+        .note-container:hover .add-button,
+        .note-container:hover .connect-button {
             display: flex;
         }
 
@@ -112,25 +127,25 @@
 </head>
 
 <body>
-    <!-- Sidebar -->
     <div class="sidebar">
         <button class="sidebar-button" id="addNewContainer">
             Add New Container
         </button>
     </div>
 
-    <!-- Main Content -->
     <div id="app"></div>
 
     <script>
         const app = document.getElementById('app');
         const addNewContainerBtn = document.getElementById('addNewContainer');
-        const lines = new Map();
         let activeNote = null;
         let initialX = 0;
         let initialY = 0;
-        let xOffset = 0;
-        let yOffset = 0;
+        let connectingMode = false;
+        let sourceNote = null;
+
+        // Store both incoming and outgoing connections for each note
+        const connections = new Map();
 
         function createNote(x, y, parentNote = null)
         {
@@ -139,7 +154,12 @@
             note.style.left = `${x}px`;
             note.style.top = `${y}px`;
 
-            // Create drag handle
+            // Initialize connections storage
+            connections.set(note, {
+                incoming: [],
+                outgoing: []
+            });
+
             const dragHandle = document.createElement('div');
             dragHandle.className = 'drag-handle';
             dragHandle.textContent = '⋮⋮';
@@ -152,18 +172,25 @@
             const addButton = document.createElement('button');
             addButton.className = 'add-button';
             addButton.textContent = '+';
+            addButton.title = 'Add connected note';
+
+            const connectButton = document.createElement('button');
+            connectButton.className = 'connect-button';
+            connectButton.textContent = '↔';
+            connectButton.title = 'Connect to another note';
 
             note.appendChild(dragHandle);
             note.appendChild(content);
             note.appendChild(addButton);
+            note.appendChild(connectButton);
             app.appendChild(note);
 
-            // Drag functionality
             dragHandle.addEventListener('mousedown', dragStart);
 
             function dragStart(e)
             {
                 if (e.target === content) return;
+                if (connectingMode) return;
 
                 activeNote = note;
                 note.classList.add('dragging');
@@ -172,7 +199,6 @@
                 initialY = e.clientY - note.offsetTop;
             }
 
-            // Add new connected note
             addButton.addEventListener('click', () =>
             {
                 const newNote = createNote(
@@ -181,42 +207,87 @@
                     note
                 );
 
-                const line = new LeaderLine(
-                    note,
-                    newNote,
-                    {
-                        color: '#999',
-                        size: 2,
-                        path: 'straight',
-                        startSocket: 'right',
-                        endSocket: 'left'
-                    }
-                );
+                createConnection(note, newNote);
+            });
 
-                lines.set(newNote, {
-                    line,
-                    parent: note
-                });
+            connectButton.addEventListener('click', () =>
+            {
+                if (connectingMode)
+                {
+                    exitConnectingMode();
+                    return;
+                }
+                enterConnectingMode(note);
+            });
+
+            note.addEventListener('click', (e) =>
+            {
+                if (!connectingMode || note === sourceNote) return;
+
+                createConnection(sourceNote, note);
+                exitConnectingMode();
             });
 
             return note;
         }
 
-        // Add new unconnected container from sidebar
+        function createConnection(from, to)
+        {
+            const line = new LeaderLine(
+                from,
+                to,
+                {
+                    color: '#999',
+                    size: 2,
+                    path: 'straight',
+                    startSocket: 'right',
+                    endSocket: 'left'
+                }
+            );
+
+            // Store the connection in both directions
+            connections.get(from).outgoing.push({ target: to, line });
+            connections.get(to).incoming.push({ source: from, line });
+        }
+
+        function enterConnectingMode(note)
+        {
+            connectingMode = true;
+            sourceNote = note;
+            document.body.style.cursor = 'crosshair';
+
+            document.querySelectorAll('.note-container').forEach(container =>
+            {
+                if (container !== note)
+                {
+                    container.classList.add('highlight-connectable');
+                }
+            });
+        }
+
+        function exitConnectingMode()
+        {
+            connectingMode = false;
+            sourceNote = null;
+            document.body.style.cursor = 'default';
+
+            document.querySelectorAll('.note-container').forEach(container =>
+            {
+                container.classList.remove('highlight-connectable');
+            });
+        }
+
         addNewContainerBtn.addEventListener('click', () =>
         {
-            // Calculate position for new container
-            // Get random position within visible area of app
             const appRect = app.getBoundingClientRect();
-            const x = Math.random() * (appRect.width - 300) + 220; // Adding 220 to account for sidebar
+            const x = Math.random() * (appRect.width - 300) + 220;
             const y = Math.random() * (appRect.height - 200) + 50;
 
             createNote(x, y);
         });
 
-        // Global mouse events
-        document.addEventListener('mousemove', drag);
-        document.addEventListener('mouseup', dragEnd);
+        // Improved drag handling
+        let animationFrameId = null;
 
         function drag(e)
         {
@@ -230,8 +301,16 @@
                 activeNote.style.left = `${currentX}px`;
                 activeNote.style.top = `${currentY}px`;
 
-                // Update lines
-                updateLines();
+                // Use requestAnimationFrame for smooth line updates
+                if (animationFrameId)
+                {
+                    cancelAnimationFrame(animationFrameId);
+                }
+
+                animationFrameId = requestAnimationFrame(() =>
+                {
+                    updateLines(activeNote);
+                });
             }
         }
 
@@ -240,17 +319,40 @@
             if (activeNote)
             {
                 activeNote.classList.remove('dragging');
+
+                // Final update of lines
+                updateLines(activeNote);
+
                 activeNote = null;
+                if (animationFrameId)
+                {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
             }
         }
 
-        function updateLines()
+        function updateLines(note)
         {
-            lines.forEach(({ line, parent }, child) =>
+            if (!note || !connections.has(note)) return;
+
+            const noteConnections = connections.get(note);
+
+            // Update incoming connections
+            noteConnections.incoming.forEach(conn =>
             {
-                line.position();
+                conn.line.position();
+            });
+
+            // Update outgoing connections
+            noteConnections.outgoing.forEach(conn =>
+            {
+                conn.line.position();
             });
         }
+
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', dragEnd);
 
         // Create initial note
         const firstNote = createNote(300, 100);
