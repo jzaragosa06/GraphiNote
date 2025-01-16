@@ -210,6 +210,65 @@
         .note-container:hover .delete-button {
             display: flex;
         }
+
+        /* Side Panel Styles */
+        .side-panel {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: #fff;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .side-panel.open {
+            right: 0;
+        }
+
+        .side-panel-content {
+            width: 100%;
+            height: calc(100% - 40px);
+            outline: none;
+            padding: 10px;
+        }
+
+        .collapse-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .expand-button {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            border: none;
+            z-index: 100;
+            background: #2196F3;
+            top: -10px;
+            right: 60px;
+        }
+
+        .note-container:hover .expand-button {
+            display: flex;
+        }
     </style>
 </head>
 
@@ -221,6 +280,11 @@
     </div>
 
     <div id="app"></div>
+
+    <div class="side-panel">
+        <button class="collapse-button">×</button>
+        <div class="side-panel-content" contenteditable="true"></div>
+    </div>
 
     <script>
         const app = document.getElementById('app');
@@ -245,6 +309,12 @@
             { h: 350, s: 30, l: 90 }, // Light pink family
             { h: 60, s: 30, l: 90 },  // Light yellow family
         ];
+
+        //For Side-panel feature
+        const sidePanel = document.querySelector('.side-panel');
+        const sidePanelContent = document.querySelector('.side-panel-content');
+        const collapseButton = document.querySelector('.collapse-button');
+        let activeExpandedNote = null;
 
         function getColorForOrigin(origin)
         {
@@ -295,10 +365,33 @@
             deleteButton.textContent = '×';
             deleteButton.title = 'Delete note';
 
+            const expandButton = document.createElement('button');
+            expandButton.className = 'expand-button';
+            expandButton.textContent = '⤢';
+            expandButton.title = 'Expand note';
+
+            // Add expand functionality
+            expandButton.addEventListener('click', () =>
+            {
+                activeExpandedNote = note;
+                sidePanelContent.textContent = content.textContent;
+                sidePanel.classList.add('open');
+            });
+
+            // Sync content between note and side panel
+            content.addEventListener('input', () =>
+            {
+                if (activeExpandedNote === note && sidePanel.classList.contains('open'))
+                {
+                    sidePanelContent.textContent = content.textContent;
+                }
+            });
+
             note.appendChild(dragHandle);
             note.appendChild(content);
             note.appendChild(addButton);
             note.appendChild(deleteButton);
+            note.appendChild(expandButton);
             app.appendChild(note);
 
             dragHandle.addEventListener('mousedown', dragStart);
@@ -564,6 +657,22 @@
 
         // Create initial note
         const firstNote = createNote(300, 100);
+
+        // Add side panel content sync
+        sidePanelContent.addEventListener('input', () =>
+        {
+            if (activeExpandedNote)
+            {
+                activeExpandedNote.querySelector('.note-content').textContent = sidePanelContent.textContent;
+            }
+        });
+
+        // Add collapse functionality
+        collapseButton.addEventListener('click', () =>
+        {
+            sidePanel.classList.remove('open');
+            activeExpandedNote = null;
+        });
     </script>
 </body>
 
