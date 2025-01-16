@@ -301,22 +301,6 @@
         .note-container:hover .expand-button {
             display: flex;
         }
-
-        /* Add animation for the dashed line */
-        .leader-line {
-            stroke-dasharray: 5;
-            animation: dashAnimation 1s linear infinite;
-        }
-
-        @keyframes dashAnimation {
-            from {
-                stroke-dashoffset: 10;
-            }
-
-            to {
-                stroke-dashoffset: 0;
-            }
-        }
     </style>
 </head>
 
@@ -601,10 +585,9 @@
                     path: 'fluid', // Use 'fluid' for curved lines
                     startSocket: options.startSocket || 'right',
                     endSocket: options.endSocket || 'left',
-                    dropShadow: false, // Add drop shadow to make lines more visible
+                    dropShadow: true, // Add drop shadow to make lines more visible
                     startPlug: 'behind', // Make the line loop around containers
-                    endPlug: 'arrow1', // Add arrow at the end of the line
-                    dash: { animation: true } // Enable dashed line animation
+                    endPlug: 'behind'
                 }
             );
 

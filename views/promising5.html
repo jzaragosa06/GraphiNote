@@ -51,6 +51,7 @@
         .note-container {
             position: absolute;
             width: 200px;
+            /* Fixed width */
             border-radius: 8px;
             padding: 16px;
             margin: 20px;
@@ -58,8 +59,11 @@
             display: inline-block;
             transition: background-color 0.3s ease;
             word-wrap: break-word;
+            /* Prevent horizontal resizing by wrapping text */
             white-space: normal;
+            /* Allow text to wrap to the next line */
             overflow: visible;
+            /* Ensure height adjusts dynamically */
         }
 
         .note-title {
@@ -143,6 +147,7 @@
             cursor: text;
         }
 
+        /* Add this to your existing CSS */
         .connection-point {
             position: absolute;
             width: 12px;
@@ -214,14 +219,17 @@
             border: none;
             z-index: 100;
             background: #ff4d4d;
+            /* Red color for delete button */
             top: -10px;
             right: 30px;
+            /* Position it to the left of the add button */
         }
 
         .note-container:hover .delete-button {
             display: flex;
         }
 
+        /* Side Panel Styles */
         .side-panel {
             position: fixed;
             right: -400px;
@@ -301,22 +309,6 @@
         .note-container:hover .expand-button {
             display: flex;
         }
-
-        /* Add animation for the dashed line */
-        .leader-line {
-            stroke-dasharray: 5;
-            animation: dashAnimation 1s linear infinite;
-        }
-
-        @keyframes dashAnimation {
-            from {
-                stroke-dashoffset: 10;
-            }
-
-            to {
-                stroke-dashoffset: 0;
-            }
-        }
     </style>
 </head>
 
@@ -346,18 +338,21 @@
         let sourceNote = null;
         const connections = new Map();
 
+        // Store origin colors
         const originColors = new Map();
         let colorIndex = 0;
 
+        // Define base colors for different origins (light, monochromatic colors)
         const baseColors = [
-            { h: 200, s: 30, l: 90 },
-            { h: 150, s: 30, l: 90 },
-            { h: 25, s: 30, l: 90 },
-            { h: 280, s: 30, l: 90 },
-            { h: 350, s: 30, l: 90 },
-            { h: 60, s: 30, l: 90 },
+            { h: 200, s: 30, l: 90 }, // Light blue family
+            { h: 150, s: 30, l: 90 }, // Light green family
+            { h: 25, s: 30, l: 90 },  // Light orange family
+            { h: 280, s: 30, l: 90 }, // Light purple family
+            { h: 350, s: 30, l: 90 }, // Light pink family
+            { h: 60, s: 30, l: 90 },  // Light yellow family
         ];
 
+        //For Side-panel feature
         const sidePanel = document.querySelector('.side-panel');
         const sidePanelContent = document.querySelector('.side-panel-content');
         const collapseButton = document.querySelector('.collapse-button');
@@ -381,8 +376,10 @@
             note.style.left = `${x}px`;
             note.style.top = `${y}px`;
 
+            // Set origin - if no originNote provided, this note becomes its own origin
             note.originNote = originNote || note;
 
+            // Apply color based on origin
             const color = getColorForOrigin(note.originNote);
             note.style.backgroundColor = `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
 
@@ -420,6 +417,7 @@
             expandButton.textContent = '⤢';
             expandButton.title = 'Expand note';
 
+            // Modify expand functionality
             expandButton.addEventListener('click', () =>
             {
                 activeExpandedNote = note;
@@ -428,6 +426,7 @@
                 sidePanel.classList.add('open');
             });
 
+            // Sync content between note and side panel
             title.addEventListener('input', () =>
             {
                 if (activeExpandedNote === note && sidePanel.classList.contains('open'))
@@ -445,7 +444,7 @@
             });
 
             note.appendChild(dragHandle);
-            note.appendChild(title);
+            note.appendChild(title);     // Add title before content
             note.appendChild(content);
             note.appendChild(addButton);
             note.appendChild(deleteButton);
@@ -472,7 +471,7 @@
                     parseInt(note.style.left) + 250,
                     parseInt(note.style.top),
                     note,
-                    note.originNote
+                    note.originNote // Pass the original origin
                 );
 
                 createConnection(note, newNote);
@@ -480,6 +479,7 @@
 
             deleteButton.addEventListener('click', () =>
             {
+                // Remove all connections associated with this note
                 const noteConnections = connections.get(note);
                 noteConnections.incoming.forEach(conn =>
                 {
@@ -494,7 +494,10 @@
                     targetConnections.incoming = targetConnections.incoming.filter(incoming => incoming.source !== note);
                 });
 
+                // Remove the note from the connections map
                 connections.delete(note);
+
+                // Remove the note from the DOM
                 note.remove();
             });
 
@@ -506,6 +509,7 @@
                 exitConnectingMode();
             });
 
+            // Add connection points
             const positions = ['top', 'right', 'bottom', 'left'];
             positions.forEach(pos =>
             {
@@ -537,6 +541,7 @@
                     position === 'top' ? 0 : sourceNote.offsetHeight / 2)
             };
 
+            // Create temporary line
             tempLine = document.createElement('div');
             tempLine.className = 'temp-line';
             app.appendChild(tempLine);
@@ -552,6 +557,7 @@
             const endX = e.clientX - app.offsetLeft;
             const endY = e.clientY - app.offsetTop;
 
+            // Update temporary line position
             const length = Math.sqrt(Math.pow(endX - startPoint.x, 2) + Math.pow(endY - startPoint.y, 2));
             const angle = Math.atan2(endY - startPoint.y, endX - startPoint.x);
 
@@ -590,6 +596,7 @@
             startPoint = null;
         }
 
+        // Modify createConnection function to handle curved lines
         function createConnection(from, to, options = {})
         {
             const line = new LeaderLine(
@@ -598,13 +605,12 @@
                 {
                     color: '#999',
                     size: 2,
-                    path: 'fluid', // Use 'fluid' for curved lines
+                    path: 'arc', // Use 'arc' for curved lines
                     startSocket: options.startSocket || 'right',
                     endSocket: options.endSocket || 'left',
-                    dropShadow: false, // Add drop shadow to make lines more visible
-                    startPlug: 'behind', // Make the line loop around containers
-                    endPlug: 'arrow1', // Add arrow at the end of the line
-                    dash: { animation: true } // Enable dashed line animation
+                    startPlug: 'behind',
+                    endPlug: 'arrow1',
+                    dash: { animation: true }
                 }
             );
 
@@ -645,7 +651,7 @@
             const x = Math.random() * (appRect.width - 300) + 220;
             const y = Math.random() * (appRect.height - 200) + 50;
 
-            createNote(x, y);
+            createNote(x, y); // New container becomes its own origin
         });
 
         let animationFrameId = null;
@@ -709,8 +715,10 @@
         document.addEventListener('mousemove', drag);
         document.addEventListener('mouseup', dragEnd);
 
+        // Create initial note
         const firstNote = createNote(300, 100);
 
+        // Add side panel content sync
         document.querySelector('.side-panel-title').addEventListener('input', () =>
         {
             if (activeExpandedNote)
@@ -729,6 +737,7 @@
             }
         });
 
+        // Add collapse functionality
         collapseButton.addEventListener('click', () =>
         {
             sidePanel.classList.remove('open');
