@@ -66,6 +66,24 @@
             /* Ensure height adjusts dynamically */
         }
 
+        .note-title {
+            outline: none;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 1.1em;
+            padding: 5px;
+            cursor: text;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .note-content {
+            outline: none;
+            padding: 5px;
+            cursor: text;
+            min-height: 50px;
+        }
+
         .note-container.dragging {
             cursor: grabbing;
             opacity: 0.9;
@@ -225,6 +243,28 @@
             padding: 20px;
         }
 
+        .side-panel-content {
+            width: 100%;
+            height: calc(100% - 40px);
+            outline: none;
+            padding: 20px;
+        }
+
+        .side-panel-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding: 5px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            outline: none;
+        }
+
+        .side-panel-body {
+            padding: 5px;
+            outline: none;
+            height: calc(100% - 60px);
+        }
+
         .side-panel.open {
             right: 0;
         }
@@ -283,9 +323,11 @@
 
     <div class="side-panel">
         <button class="collapse-button">×</button>
-        <div class="side-panel-content" contenteditable="true"></div>
+        <div class="side-panel-content">
+            <div class="side-panel-title" contenteditable="true"></div>
+            <div class="side-panel-body" contenteditable="true"></div>
+        </div>
     </div>
-
     <script>
         const app = document.getElementById('app');
         const addNewContainerBtn = document.getElementById('addNewContainer');
@@ -350,6 +392,11 @@
             dragHandle.className = 'drag-handle';
             dragHandle.textContent = '⋮⋮';
 
+            const title = document.createElement('div');
+            title.className = 'note-title';
+            title.contentEditable = true;
+            title.textContent = 'Note Title';
+
             const content = document.createElement('div');
             content.className = 'note-content';
             content.contentEditable = true;
@@ -370,24 +417,34 @@
             expandButton.textContent = '⤢';
             expandButton.title = 'Expand note';
 
-            // Add expand functionality
+            // Modify expand functionality
             expandButton.addEventListener('click', () =>
             {
                 activeExpandedNote = note;
-                sidePanelContent.textContent = content.textContent;
+                document.querySelector('.side-panel-title').textContent = title.textContent;
+                document.querySelector('.side-panel-body').textContent = content.textContent;
                 sidePanel.classList.add('open');
             });
 
             // Sync content between note and side panel
+            title.addEventListener('input', () =>
+            {
+                if (activeExpandedNote === note && sidePanel.classList.contains('open'))
+                {
+                    document.querySelector('.side-panel-title').textContent = title.textContent;
+                }
+            });
+
             content.addEventListener('input', () =>
             {
                 if (activeExpandedNote === note && sidePanel.classList.contains('open'))
                 {
-                    sidePanelContent.textContent = content.textContent;
+                    document.querySelector('.side-panel-body').textContent = content.textContent;
                 }
             });
 
             note.appendChild(dragHandle);
+            note.appendChild(title);     // Add title before content
             note.appendChild(content);
             note.appendChild(addButton);
             note.appendChild(deleteButton);
@@ -659,11 +716,21 @@
         const firstNote = createNote(300, 100);
 
         // Add side panel content sync
-        sidePanelContent.addEventListener('input', () =>
+        document.querySelector('.side-panel-title').addEventListener('input', () =>
         {
             if (activeExpandedNote)
             {
-                activeExpandedNote.querySelector('.note-content').textContent = sidePanelContent.textContent;
+                activeExpandedNote.querySelector('.note-title').textContent =
+                    document.querySelector('.side-panel-title').textContent;
+            }
+        });
+
+        document.querySelector('.side-panel-body').addEventListener('input', () =>
+        {
+            if (activeExpandedNote)
+            {
+                activeExpandedNote.querySelector('.note-content').textContent =
+                    document.querySelector('.side-panel-body').textContent;
             }
         });
 
