@@ -257,97 +257,6 @@
             return originColors.get(origin);
         }
 
-        /*
-        function createNote(x, y, parentNote = null, originNote = null)
-        {
-            const note = document.createElement('div');
-            note.className = 'note-container';
-            note.style.left = `${x}px`;
-            note.style.top = `${y}px`;
-
-            // Set origin - if no originNote provided, this note becomes its own origin
-            note.originNote = originNote || note;
-
-            // Apply color based on origin
-            const color = getColorForOrigin(note.originNote);
-            note.style.backgroundColor = `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
-
-            connections.set(note, {
-                incoming: [],
-                outgoing: []
-            });
-
-            const dragHandle = document.createElement('div');
-            dragHandle.className = 'drag-handle';
-            dragHandle.textContent = '⋮⋮';
-
-            const content = document.createElement('div');
-            content.className = 'note-content';
-            content.contentEditable = true;
-            content.textContent = 'Enter your text here...';
-
-            const addButton = document.createElement('button');
-            addButton.className = 'add-button';
-            addButton.textContent = '+';
-            addButton.title = 'Add connected note';
-
-            note.appendChild(dragHandle);
-            note.appendChild(content);
-            note.appendChild(addButton);
-            app.appendChild(note);
-
-            dragHandle.addEventListener('mousedown', dragStart);
-
-            function dragStart(e)
-            {
-                if (e.target === content) return;
-                if (connectingMode) return;
-
-                activeNote = note;
-                note.classList.add('dragging');
-
-                initialX = e.clientX - note.offsetLeft;
-                initialY = e.clientY - note.offsetTop;
-            }
-
-            addButton.addEventListener('click', () =>
-            {
-                const newNote = createNote(
-                    parseInt(note.style.left) + 250,
-                    parseInt(note.style.top),
-                    note,
-                    note.originNote // Pass the original origin
-                );
-
-                createConnection(note, newNote);
-            });
-
-
-
-            note.addEventListener('click', (e) =>
-            {
-                if (!connectingMode || note === sourceNote) return;
-
-                createConnection(sourceNote, note);
-                exitConnectingMode();
-            });
-
-            // Add connection points
-            const positions = ['top', 'right', 'bottom', 'left'];
-            positions.forEach(pos =>
-            {
-                const point = document.createElement('div');
-                point.className = `connection-point ${pos}`;
-                point.dataset.position = pos;
-                point.addEventListener('mousedown', startConnection);
-                note.appendChild(point);
-            });
-
-            return note;
-        }
-
-        */
-
         function createNote(x, y, parentNote = null, originNote = null)
         {
             const note = document.createElement('div');
@@ -463,7 +372,7 @@
 
             return note;
         }
-        
+
         let tempLine = null;
         let startPoint = null;
 

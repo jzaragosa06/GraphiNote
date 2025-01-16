@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js"></script>
+    <style>
+        /* Previous styles remain the same */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 200px;
+            height: 100vh;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .sidebar-button {
+            width: 100%;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+
+        .sidebar-button:hover {
+            background: #45a049;
+        }
+
+        #app {
+            position: relative;
+            margin-left: 200px;
+            width: calc(100% - 200px);
+            height: 100vh;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        .note-container {
+            position: absolute;
+            width: 200px;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px;
+            user-select: none;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+            word-wrap: break-word;
+            white-space: normal;
+            overflow: visible;
+        }
+
+        /* Add styles for side panel */
+        .side-panel {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .side-panel.open {
+            right: 0;
+        }
+
+        .side-panel-content {
+            width: 100%;
+            height: calc(100% - 40px);
+            outline: none;
+            border: none;
+            padding: 10px;
+            resize: none;
+        }
+
+        .collapse-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .expand-button {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            border: none;
+            z-index: 100;
+            background: #2196F3;
+            top: -10px;
+            right: 60px;
+        }
+
+        .note-container:hover .expand-button {
+            display: flex;
+        }
+
+        /* Previous styles remain the same... */
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <button class="sidebar-button" id="addNewContainer">
+            Add New Container
+        </button>
+    </div>
+
+    <div id="app"></div>
+
+    <!-- Add side panel -->
+    <div class="side-panel">
+        <button class="collapse-button">×</button>
+        <div class="side-panel-content" contenteditable="true"></div>
+    </div>
+
+    <script>
+        // Previous variables and functions remain the same...
+        const sidePanel = document.querySelector('.side-panel');
+        const sidePanelContent = document.querySelector('.side-panel-content');
+        const collapseButton = document.querySelector('.collapse-button');
+        let activeExpandedNote = null;
+
+        // Modify createNote function to add expand button
+        function createNote(x, y, parentNote = null, originNote = null)
+        {
+            const note = document.createElement('div');
+            note.className = 'note-container';
+            note.style.left = `${x}px`;
+            note.style.top = `${y}px`;
+
+            note.originNote = originNote || note;
+            const color = getColorForOrigin(note.originNote);
+            note.style.backgroundColor = `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
+
+            connections.set(note, {
+                incoming: [],
+                outgoing: []
+            });
+
+            const dragHandle = document.createElement('div');
+            dragHandle.className = 'drag-handle';
+            dragHandle.textContent = '⋮⋮';
+
+            const content = document.createElement('div');
+            content.className = 'note-content';
+            content.contentEditable = true;
+            content.textContent = 'Enter your text here...';
+
+            const addButton = document.createElement('button');
+            addButton.className = 'add-button';
+            addButton.textContent = '+';
+            addButton.title = 'Add connected note';
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-button';
+            deleteButton.textContent = '×';
+            deleteButton.title = 'Delete note';
+
+            const expandButton = document.createElement('button');
+            expandButton.className = 'expand-button';
+            expandButton.textContent = '⤢';
+            expandButton.title = 'Expand note';
+
+            note.appendChild(dragHandle);
+            note.appendChild(content);
+            note.appendChild(addButton);
+            note.appendChild(deleteButton);
+            note.appendChild(expandButton);
+            app.appendChild(note);
+
+            // Add expand functionality
+            expandButton.addEventListener('click', () =>
+            {
+                activeExpandedNote = note;
+                sidePanelContent.textContent = content.textContent;
+                sidePanel.classList.add('open');
+            });
+
+            // Sync content between note and side panel
+            content.addEventListener('input', () =>
+            {
+                if (activeExpandedNote === note && sidePanel.classList.contains('open'))
+                {
+                    sidePanelContent.textContent = content.textContent;
+                }
+            });
+
+            // Previous event listeners remain the same...
+            dragHandle.addEventListener('mousedown', dragStart);
+            addButton.addEventListener('click', () =>
+            {
+                const newNote = createNote(
+                    parseInt(note.style.left) + 250,
+                    parseInt(note.style.top),
+                    note,
+                    note.originNote
+                );
+                createConnection(note, newNote);
+            });
+
+            deleteButton.addEventListener('click', () =>
+            {
+                const noteConnections = connections.get(note);
+                noteConnections.incoming.forEach(conn =>
+                {
+                    conn.line.remove();
+                    const sourceConnections = connections.get(conn.source);
+                    sourceConnections.outgoing = sourceConnections.outgoing.filter(out => out.target !== note);
+                });
+                noteConnections.outgoing.forEach(conn =>
+                {
+                    conn.line.remove();
+                    const targetConnections = connections.get(conn.target);
+                    targetConnections.incoming = targetConnections.incoming.filter(incoming => incoming.source !== note);
+                });
+                connections.delete(note);
+                note.remove();
+            });
+
+            // Add connection points...
+            const positions = ['top', 'right', 'bottom', 'left'];
+            positions.forEach(pos =>
+            {
+                const point = document.createElement('div');
+                point.className = `connection-point ${pos}`;
+                point.dataset.position = pos;
+                point.addEventListener('mousedown', startConnection);
+                note.appendChild(point);
+            });
+
+            return note;
+        }
+
+        // Add side panel content sync
+        sidePanelContent.addEventListener('input', () =>
+        {
+            if (activeExpandedNote)
+            {
+                activeExpandedNote.querySelector('.note-content').textContent = sidePanelContent.textContent;
+            }
+        });
+
+        // Add collapse functionality
+        collapseButton.addEventListener('click', () =>
+        {
+            sidePanel.classList.remove('open');
+            activeExpandedNote = null;
+        });
+
+        // Previous event listeners and initialization code remain the same...
+        addNewContainerBtn.addEventListener('click', () =>
+        {
+            const appRect = app.getBoundingClientRect();
+            const x = Math.random() * (appRect.width - 300) + 220;
+            const y = Math.random() * (appRect.height - 200) + 50;
+            createNote(x, y);
+        });
+
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', dragEnd);
+
+        // Create initial note
+        const firstNote = createNote(300, 100);
+    </script>
+</body>
+
+</html>
