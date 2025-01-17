@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-md p-4 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <img src="https://png.pngtree.com/png-vector/20220519/ourmid/pngtree-abstract-and-geometric-logo-templates-png-image_4632210.png"
+                alt="Logo" class="h-16 w-16">
+            <span class="text-lg font-bold">GraphiNote</span>
+        </div>
+        <a href="/lab">
+            <button
+                class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300">
+                Create a Note
+            </button>
+        </a>
+
+    </nav>
+
+    <!-- Main Content -->
+    <main class="p-6">
+        <div class="bg-white shadow rounded p-4 h-40 my-5 flex items-center justify-center">
+            <span class="text-gray-400">Lorem ipsum dolor sit amet consectetur adipisicing elit. Officia voluptatibus
+                quas illo amet nemo debitis saepe dolor rem labore aut. Corrupti quis officia neque saepe cupiditate
+                incidunt iste assumenda exercitationem!</span>
+        </div>
+
+        <h1 class="text-2xl font-bold mb-4">Recent Notes</h1>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <!-- Placeholder for Notes -->
+            <div class="bg-white shadow rounded p-4 h-24 flex items-center justify-center">
+                <span class="text-gray-400">Note 1</span>
+            </div>
+            <div class="bg-white shadow rounded p-4 h-24 flex items-center justify-center">
+                <span class="text-gray-400">Note 2</span>
+            </div>
+            <div class="bg-white shadow rounded p-4 h-24 flex items-center justify-center">
+                <span class="text-gray-400">Note 3</span>
+            </div>
+            <div class="bg-white shadow rounded p-4 h-24 flex items-center justify-center">
+                <span class="text-gray-400">Note 4</span>
+            </div>
+            <div class="bg-white shadow rounded p-4 h-24 flex items-center justify-center">
+                <span class="text-gray-400">Note 5</span>
+            </div>
+            <!-- Add more notes if needed -->
+        </div>
+    </main>
+</body>
+
+</html>
