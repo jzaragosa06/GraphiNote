@@ -639,17 +639,24 @@
             label.style.fontSize = '12px';
             label.style.cursor = 'text';
 
-            // Function to calculate the midpoint of the line
+            // Function to update the label position along the line
             const updateLabelPosition = () =>
             {
-                const fromRect = from.getBoundingClientRect();
-                const toRect = to.getBoundingClientRect();
+                // Get the start and end points of the line
+                const startRect = from.getBoundingClientRect();
+                const endRect = to.getBoundingClientRect();
 
-                const midX = (fromRect.left + toRect.left) / 2 + (fromRect.width / 4);
-                const midY = (fromRect.top + toRect.top) / 2 + (fromRect.height / 4);
+                // Calculate the midpoint between the start and end points
+                const midX = (startRect.left + endRect.left) / 2;
+                const midY = (startRect.top + endRect.top) / 2;
 
-                label.style.left = `${midX}px`;
-                label.style.top = `${midY}px`;
+                // Adjust the label position to be closer to the line
+                const angle = Math.atan2(endRect.top - startRect.top, endRect.left - startRect.left);
+                const offsetX = Math.cos(angle) * 20; // Adjust the offset as needed
+                const offsetY = Math.sin(angle) * 20; // Adjust the offset as needed
+
+                label.style.left = `${midX + offsetX}px`;
+                label.style.top = `${midY + offsetY}px`;
             };
 
             // Initial position update
