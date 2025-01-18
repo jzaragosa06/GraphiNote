@@ -439,7 +439,7 @@
             note.className = 'note-container';
             note.style.left = `${x}px`;
             note.style.top = `${y}px`;
-
+            note.id = `note-${Date.now()}`;
             note.originNote = originNote || note;
 
             const color = getColorForOrigin(note.originNote);
