@@ -317,6 +317,22 @@
                 stroke-dashoffset: 0;
             }
         }
+
+        .connection-label {
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .connection-label:hover {
+            background-color: #555;
+        }
     </style>
 </head>
 
@@ -484,12 +500,14 @@
                 noteConnections.incoming.forEach(conn =>
                 {
                     conn.line.remove();
+                    conn.label.remove();  // Remove the label
                     const sourceConnections = connections.get(conn.source);
                     sourceConnections.outgoing = sourceConnections.outgoing.filter(out => out.target !== note);
                 });
                 noteConnections.outgoing.forEach(conn =>
                 {
                     conn.line.remove();
+                    conn.label.remove();  // Remove the label
                     const targetConnections = connections.get(conn.target);
                     targetConnections.incoming = targetConnections.incoming.filter(incoming => incoming.source !== note);
                 });
@@ -497,7 +515,6 @@
                 connections.delete(note);
                 note.remove();
             });
-
             note.addEventListener('click', (e) =>
             {
                 if (!connectingMode || note === sourceNote) return;
@@ -590,6 +607,7 @@
             startPoint = null;
         }
 
+        // Modify the createConnection function to include label creation
         function createConnection(from, to, options = {})
         {
             const line = new LeaderLine(
@@ -598,19 +616,55 @@
                 {
                     color: '#999',
                     size: 2,
-                    path: 'fluid', // Use 'fluid' for curved lines
+                    path: 'fluid',
                     startSocket: options.startSocket || 'right',
                     endSocket: options.endSocket || 'left',
-                    dropShadow: false, // Add drop shadow to make lines more visible
-                    startPlug: 'behind', // Make the line loop around containers
-                    endPlug: 'arrow1', // Add arrow at the end of the line
-                    dash: { animation: true } // Enable dashed line animation
+                    dropShadow: false,
+                    startPlug: 'behind',
+                    endPlug: 'arrow1',
+                    dash: { animation: true }
                 }
             );
 
-            connections.get(from).outgoing.push({ target: to, line });
-            connections.get(to).incoming.push({ source: from, line });
+            // Create label element
+            const label = document.createElement('div');
+            label.className = 'connection-label';
+            label.textContent = 'Relationship';
+            label.contentEditable = true;
+            document.body.appendChild(label);
+
+            // Update label position initially
+            updateLabelPosition(from, to, label);
+
+            // Make the label editable
+            label.addEventListener('blur', () =>
+            {
+                if (label.textContent.trim() === '')
+                {
+                    label.textContent = 'Connection';
+                }
+            });
+
+            // Store connection information
+            connections.get(from).outgoing.push({ target: to, line, label });
+            connections.get(to).incoming.push({ source: from, line, label });
         }
+
+        // Add this function to update label positions
+        function updateLabelPosition(from, to, label)
+        {
+            const fromRect = from.getBoundingClientRect();
+            const toRect = to.getBoundingClientRect();
+
+            // Calculate the midpoint between the two notes
+            const midX = (fromRect.right + toRect.left) / 2;
+            const midY = (fromRect.top + toRect.top) / 2 + (fromRect.height / 2);
+
+            // Position the label
+            label.style.left = `${midX - label.offsetWidth / 2}px`;
+            label.style.top = `${midY - label.offsetHeight / 2}px`;
+        }
+
 
         function enterConnectingMode(note)
         {
@@ -698,13 +752,16 @@
             noteConnections.incoming.forEach(conn =>
             {
                 conn.line.position();
+                updateLabelPosition(conn.source, note, conn.label);
             });
 
             noteConnections.outgoing.forEach(conn =>
             {
                 conn.line.position();
+                updateLabelPosition(note, conn.target, conn.label);
             });
         }
+
 
         document.addEventListener('mousemove', drag);
         document.addEventListener('mouseup', dragEnd);

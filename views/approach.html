@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draggable Containers with LeaderLine</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            width: 150px;
+            height: 100px;
+            background-color: #4CAF50;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            position: absolute;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #container1 {
+            left: 20%;
+        }
+
+        #container2 {
+            left: 60%;
+        }
+
+        .label {
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            pointer-events: none;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/leader-line@1.0.5/leader-line.min.js"></script>
+</head>
+
+<body>
+    <div id="container1" class="container">Container 1</div>
+    <div id="container2" class="container">Container 2</div>
+    <div id="lineLabel" class="label">Connection</div>
+
+    <script>
+        // Initialize LeaderLine
+        const container1 = document.getElementById('container1');
+        const container2 = document.getElementById('container2');
+        const lineLabel = document.getElementById('lineLabel');
+
+        const line = new LeaderLine(
+            container1,
+            container2,
+            {
+                color: '#333',
+                size: 2,
+                startSocket: 'right',
+                endSocket: 'left',
+                path: 'fluid',
+                startSocketGravity: 100,
+                endSocketGravity: 100
+            }
+        );
+
+        // Function to update the label position
+        function updateLabelPosition()
+        {
+            const rect1 = container1.getBoundingClientRect();
+            const rect2 = container2.getBoundingClientRect();
+            const midX = (rect1.right + rect2.left) / 2;
+            const midY = (rect1.bottom + rect2.top) / 2;
+
+            lineLabel.style.left = `${midX - lineLabel.offsetWidth / 2}px`;
+            lineLabel.style.top = `${midY - lineLabel.offsetHeight / 2}px`;
+        }
+
+        // Make containers draggable
+        function makeDraggable(element)
+        {
+            let isDragging = false;
+            let offsetX, offsetY;
+
+            element.addEventListener('mousedown', (e) =>
+            {
+                isDragging = true;
+                offsetX = e.clientX - element.getBoundingClientRect().left;
+                offsetY = e.clientY - element.getBoundingClientRect().top;
+                element.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener('mousemove', (e) =>
+            {
+                if (isDragging)
+                {
+                    element.style.left = `${e.clientX - offsetX}px`;
+                    element.style.top = `${e.clientY - offsetY}px`;
+                    line.position();
+                    updateLabelPosition();
+                }
+            });
+
+            document.addEventListener('mouseup', () =>
+            {
+                isDragging = false;
+                element.style.cursor = 'grab';
+            });
+        }
+
+        makeDraggable(container1);
+        makeDraggable(container2);
+
+        // Initial label position
+        updateLabelPosition();
+    </script>
+</body>
+
+</html>
