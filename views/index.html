@@ -341,6 +341,9 @@
         <button class="sidebar-button" id="addNewContainer">
             Add New Container
         </button>
+        <button class="sidebar-button" id="exportData">
+            Export Data
+        </button>
     </div>
 
     <div id="app"></div>
@@ -790,6 +793,54 @@
         {
             sidePanel.classList.remove('open');
             activeExpandedNote = null;
+        });
+
+        function generateJSON()
+        {
+            const notes = [];
+            const connectionsList = [];
+
+            // Iterate over all notes and collect their data
+            document.querySelectorAll('.note-container').forEach(note =>
+            {
+                const noteData = {
+                    id: note.id || note.originNote.id,
+                    title: note.querySelector('.note-title').textContent,
+                    content: note.querySelector('.note-content').textContent,
+                    position: {
+                        x: parseInt(note.style.left),
+                        y: parseInt(note.style.top)
+                    },
+                    originNote: note.originNote.id || note.originNote.originNote.id
+                };
+                notes.push(noteData);
+            });
+
+            // Iterate over all connections and collect their data
+            connections.forEach((value, key) =>
+            {
+                value.outgoing.forEach(conn =>
+                {
+                    const connectionData = {
+                        from: key.id || key.originNote.id,
+                        to: conn.target.id || conn.target.originNote.id,
+                        label: conn.label.textContent
+                    };
+                    connectionsList.push(connectionData);
+                });
+            });
+
+            return {
+                notes,
+                connections: connectionsList
+            };
+        }
+
+        // Add an event listener to the export button
+        document.getElementById('exportData').addEventListener('click', () =>
+        {
+            const jsonData = generateJSON();
+            console.log(JSON.stringify(jsonData, null, 2));
         });
     </script>
 </body>
