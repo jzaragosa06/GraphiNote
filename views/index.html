@@ -352,6 +352,49 @@
             <div class="side-panel-body" contenteditable="true"></div>
         </div>
     </div>
+
+    <script>
+        function generateAppState()
+        {
+            const appState = {
+                notes: [],
+                connections: []
+            };
+
+            // Iterate over all note containers
+            document.querySelectorAll('.note-container').forEach(note =>
+            {
+                const noteData = {
+                    id: note.id || Date.now(), // Assign a unique ID if not already present
+                    title: note.querySelector('.note-title').textContent,
+                    content: note.querySelector('.note-content').textContent,
+                    position: {
+                        x: parseInt(note.style.left),
+                        y: parseInt(note.style.top)
+                    },
+                    originNote: note.originNote ? note.originNote.id : null
+                };
+                appState.notes.push(noteData);
+            });
+
+            // Iterate over all connections
+            connections.forEach((conn, note) =>
+            {
+                conn.outgoing.forEach(out =>
+                {
+                    const connectionData = {
+                        from: note.id || note.originNote.id,
+                        to: out.target.id || out.target.originNote.id,
+                        label: out.label.textContent
+                    };
+                    appState.connections.push(connectionData);
+                });
+            });
+
+            return appState;
+        }
+    </script>
+
     <script>
         const app = document.getElementById('app');
         const addNewContainerBtn = document.getElementById('addNewContainer');
@@ -450,6 +493,7 @@
                 {
                     document.querySelector('.side-panel-title').textContent = title.textContent;
                 }
+
             });
 
             content.addEventListener('input', () =>
@@ -458,6 +502,7 @@
                 {
                     document.querySelector('.side-panel-body').textContent = content.textContent;
                 }
+
             });
 
             note.appendChild(dragHandle);
@@ -492,6 +537,7 @@
                 );
 
                 createConnection(note, newNote);
+                console.log("new container from the preceeding is created: ", generateAppState());
             });
 
             deleteButton.addEventListener('click', () =>
@@ -514,6 +560,7 @@
 
                 connections.delete(note);
                 note.remove();
+                console.log("container is deleted: ", generateAppState());
             });
             note.addEventListener('click', (e) =>
             {
@@ -643,11 +690,14 @@
                 {
                     label.textContent = 'Connection';
                 }
+
             });
 
             // Store connection information
             connections.get(from).outgoing.push({ target: to, line, label });
             connections.get(to).incoming.push({ source: from, line, label });
+
+            console.log("connection is created: ", generateAppState());
         }
 
         // Add this function to update label positions
