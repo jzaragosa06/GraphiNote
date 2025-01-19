@@ -190,6 +190,24 @@
             animation: dashAnimation 1s linear infinite;
         }
 
+        .connection-label {
+            position: absolute;
+            background-color: rgb(224, 224, 224);
+            color: black;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: auto;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .connection-label:hover {
+            background-color: rgb(54, 98, 255);
+            color: white;
+
+        }
+
         @keyframes dashAnimation {
             from {
                 stroke-dashoffset: 10;
@@ -316,22 +334,6 @@
             to {
                 stroke-dashoffset: 0;
             }
-        }
-
-        .connection-label {
-            position: absolute;
-            background-color: #333;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            cursor: pointer;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-
-        .connection-label:hover {
-            background-color: #555;
         }
     </style>
 </head>
