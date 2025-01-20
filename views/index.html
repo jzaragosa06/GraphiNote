@@ -294,7 +294,6 @@
         }
 
         /* Modal styles */
-        /* Modal styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -323,7 +322,6 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             resize: none;
-            /* Prevent textarea from expanding */
             font-family: inherit;
             font-size: 14px;
             outline: none;
@@ -336,9 +334,7 @@
         .modal-buttons {
             display: flex;
             justify-content: flex-end;
-            /* Align buttons to the right */
             gap: 10px;
-            /* Space between buttons */
         }
 
         .modal button {
@@ -366,6 +362,18 @@
 
         .modal button.cancel:hover {
             background: #e60000;
+        }
+
+        /* Resize handle */
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 10px;
+            cursor: ew-resize;
+            background: rgba(0, 0, 0, 0);
+            border-radius: 0 8px 8px 0;
         }
     </style>
 </head>
@@ -426,7 +434,7 @@
                 toggleLabelsBtn.style.backgroundColor = '#4CAF50'; // Blue when labels are shown
             } else
             {
-                toggleLabelsBtn.innerText = "show connection labels";
+                toggleLabelsBtn.innerText = "show connection labels"
                 toggleLabelsBtn.style.backgroundColor = '#808080'; // Gray when labels are hidden
             }
         }
@@ -567,6 +575,34 @@
             expandButton.textContent = '⤢';
             expandButton.title = 'Expand note';
 
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'resize-handle';
+            note.appendChild(resizeHandle);
+
+            // Add event listener for resizing
+            resizeHandle.addEventListener('mousedown', (e) =>
+            {
+                e.preventDefault();
+                const startWidth = note.offsetWidth;
+                const startX = e.clientX;
+
+                function onMouseMove(e)
+                {
+                    const newWidth = startWidth + (e.clientX - startX);
+                    note.style.width = `${newWidth}px`;
+                    updateLines(note); // Update lines when resizing
+                }
+
+                function onMouseUp()
+                {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+
             expandButton.addEventListener('click', () =>
             {
                 activeExpandedNote = note;
@@ -630,7 +666,7 @@
                 );
 
                 createConnection(note, newNote);
-                console.log("new container from the preceeding is created: ", generateAppState());
+                console.log("new container from the preceding is created: ", generateAppState());
             });
 
             deleteButton.addEventListener('click', () =>
@@ -798,7 +834,7 @@
             const toRect = to.getBoundingClientRect();
 
             // Calculate the midpoint between the two notes
-            const midX = (fromRect.right + toRect.left) / 2;
+            const midX = (fromRect.left + toRect.left) / 2 + (fromRect.width + toRect.width) / 4;
             const midY = (fromRect.top + toRect.top) / 2 + (fromRect.height / 2);
 
             // Position the label
