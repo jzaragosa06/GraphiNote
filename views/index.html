@@ -375,6 +375,10 @@
         <button class="sidebar-button" id="addNewContainer">
             Add New Container
         </button>
+
+        <button class="sidebar-button" id="toggleLabels">
+            Toggle Labels
+        </button>
     </div>
 
     <div id="app"></div>
@@ -397,6 +401,36 @@
             </div>
         </div>
     </div>
+
+    <script>
+        const toggleLabelsBtn = document.getElementById('toggleLabels');
+        toggleLabelsBtn.addEventListener('click', toggleLabelsVisibility);
+
+        function toggleLabelsVisibility()
+        {
+            const labels = document.querySelectorAll('.connection-label');
+            let allHidden = true; // Assume all labels are hidden initially
+
+            labels.forEach(label =>
+            {
+                if (label.style.display !== 'none')
+                {
+                    allHidden = false; // If any label is visible, set allHidden to false
+                }
+                label.style.display = label.style.display === 'none' ? 'block' : 'none';
+            });
+
+            // Update button color based on label visibility
+            if (allHidden)
+            {
+                toggleLabelsBtn.style.backgroundColor = '#4CAF50'; // Blue when labels are shown
+            } else
+            {
+                toggleLabelsBtn.innerText = "show connection labels";
+                toggleLabelsBtn.style.backgroundColor = '#808080'; // Gray when labels are hidden
+            }
+        }
+    </script>
 
     <script>
         function generateAppState()
