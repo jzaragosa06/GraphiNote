@@ -835,7 +835,7 @@
 
             // Calculate the midpoint between the two notes
             const midX = (fromRect.left + toRect.left) / 2 + (fromRect.width + toRect.width) / 4;
-            const midY = (fromRect.top + toRect.top) / 2 + (fromRect.height / 2);
+            const midY = (fromRect.top + toRect.top) / 2 + (fromRect.height + toRect.height) / 4;
 
             // Position the label
             label.style.left = `${midX - label.offsetWidth / 2}px`;
