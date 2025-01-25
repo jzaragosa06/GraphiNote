@@ -9,7 +9,6 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Arial', serif;
-
         }
 
         .sidebar {
@@ -61,6 +60,8 @@
             word-wrap: break-word;
             white-space: normal;
             overflow: visible;
+            border: 1px solid #00000037;
+            /* Add a thin black border */
         }
 
         .note-title {
@@ -301,6 +302,14 @@
             background: rgba(0, 0, 0, 0);
             border-radius: 0 8px 8px 0;
         }
+
+        .note-container.no-color {
+            background-color: white !important;
+        }
+
+        .note-container.no-color .drag-handle {
+            background: rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 
@@ -312,6 +321,10 @@
 
         <button class="sidebar-button" id="toggleLabels">
             Toggle Labels
+        </button>
+
+        <button class="sidebar-button" id="toggleColors">
+            Toggle Colors
         </button>
     </div>
 
@@ -403,6 +416,7 @@
     <script>
         const app = document.getElementById('app');
         const addNewContainerBtn = document.getElementById('addNewContainer');
+        const toggleColorsBtn = document.getElementById('toggleColors');
         let activeNote = null;
         let initialX = 0;
         let initialY = 0;
@@ -421,6 +435,8 @@
             { h: 350, s: 30, l: 90 },
             { h: 60, s: 30, l: 90 },
         ];
+
+        let colorsEnabled = true;
 
         // AI Modal related variables
         const aiModal = document.getElementById('aiModal');
@@ -448,6 +464,11 @@
 
             const color = getColorForOrigin(note.originNote);
             note.style.backgroundColor = `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
+
+            if (!colorsEnabled)
+            {
+                note.classList.add('no-color');
+            }
 
             connections.set(note, {
                 incoming: [],
@@ -482,8 +503,6 @@
             deleteButton.className = 'delete-button';
             deleteButton.textContent = '×';
             deleteButton.title = 'Delete note';
-
-
 
             const resizeHandle = document.createElement('div');
             resizeHandle.className = 'resize-handle';
@@ -859,6 +878,25 @@
             closeAIModal();
             document.getElementById('aiPrompt').value = '';
         }
+
+        // Toggle colors functionality
+        toggleColorsBtn.addEventListener('click', () =>
+        {
+            colorsEnabled = !colorsEnabled;
+            document.querySelectorAll('.note-container').forEach(note =>
+            {
+                if (colorsEnabled)
+                {
+                    note.classList.remove('no-color');
+                    const color = getColorForOrigin(note.originNote);
+                    note.style.backgroundColor = `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
+                } else
+                {
+                    note.classList.add('no-color');
+                    note.style.backgroundColor = 'white';
+                }
+            });
+        });
     </script>
 </body>
 
