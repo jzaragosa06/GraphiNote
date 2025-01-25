@@ -1,126 +1,126 @@
-<script>
-    // Add this CSS to your existing styles
-    const newStyles = `
-.connection-label {
-    position: absolute;
-    background-color: #333;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 14px;
-    cursor: pointer;
-    z-index: 1000;
-    transition: all 0.3s ease;
-}
+<!DOCTYPE html>
+<html lang="en">
 
-.connection-label:hover {
-    background-color: #555;
-}
-`;
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor.js Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
 
-    // Add the styles to the document
-    const styleSheet = document.createElement("style");
-    styleSheet.textContent = newStyles;
-    document.head.appendChild(styleSheet);
+        .editor-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
 
-    // Modify the createConnection function to include label creation
-    function createConnection(from, to, options = {})
-    {
-        const line = new LeaderLine(
-            from,
-            to,
+        #editorjs {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 300px;
+        }
+
+        .save-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .save-button:hover {
+            background-color: #0056b3;
+        }
+
+        .output-container {
+            margin-top: 20px;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="editor-container">
+        <h1>Editor.js Example</h1>
+        <div id="editorjs"></div>
+        <button class="save-button" id="saveButton">Save Content</button>
+        <div class="output-container">
+            <h2>Saved Content</h2>
+            <pre id="output"></pre>
+        </div>
+    </div>
+
+    <!-- Editor.js and plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
+
+    <script>
+        // Initialize Editor.js
+        const editor = new EditorJS({
+            holder: 'editorjs',
+            tools: {
+                header: {
+                    class: Header,
+                    inlineToolbar: ['link'],
+                },
+
+                quote: {
+                    class: Quote,
+                    inlineToolbar: true,
+                    config: {
+                        quotePlaceholder: 'Enter a quote',
+                        captionPlaceholder: "Author's name",
+                    },
+                },
+
+                code: {
+                    class: CodeTool
+                },
+                image: {
+                    class: ImageTool,
+                    config: {
+                        endpoints: {
+                            byFile: 'http://localhost:3000/uploadFile', // Replace with your file upload endpoint
+                            byUrl: 'http://localhost:3000/fetchUrl', // Replace with your URL endpoint
+                        },
+                    },
+                },
+            },
+        });
+
+        // Save content to the output container
+        document.getElementById('saveButton').addEventListener('click', () =>
+        {
+            editor.save().then((outputData) =>
             {
-                color: '#999',
-                size: 2,
-                path: 'fluid',
-                startSocket: options.startSocket || 'right',
-                endSocket: options.endSocket || 'left',
-                dropShadow: false,
-                startPlug: 'behind',
-                endPlug: 'arrow1',
-                dash: { animation: true }
-            }
-        );
-
-        // Create label element
-        const label = document.createElement('div');
-        label.className = 'connection-label';
-        label.textContent = 'Connection';
-        label.contentEditable = true;
-        document.body.appendChild(label);
-
-        // Update label position initially
-        updateLabelPosition(from, to, label);
-
-        // Make the label editable
-        label.addEventListener('blur', () =>
-        {
-            if (label.textContent.trim() === '')
+                document.getElementById('output').textContent = JSON.stringify(outputData, null, 2);
+            }).catch((error) =>
             {
-                label.textContent = 'Connection';
-            }
+                console.error('Saving failed: ', error);
+            });
         });
+    </script>
+</body>
 
-        // Store connection information
-        connections.get(from).outgoing.push({ target: to, line, label });
-        connections.get(to).incoming.push({ source: from, line, label });
-    }
-
-    // Add this function to update label positions
-    function updateLabelPosition(from, to, label)
-    {
-        const fromRect = from.getBoundingClientRect();
-        const toRect = to.getBoundingClientRect();
-
-        // Calculate the midpoint between the two notes
-        const midX = (fromRect.right + toRect.left) / 2;
-        const midY = (fromRect.top + toRect.top) / 2 + (fromRect.height / 2);
-
-        // Position the label
-        label.style.left = `${midX - label.offsetWidth / 2}px`;
-        label.style.top = `${midY - label.offsetHeight / 2}px`;
-    }
-
-    // Modify the updateLines function to update label positions
-    function updateLines(note)
-    {
-        if (!note || !connections.has(note)) return;
-
-        const noteConnections = connections.get(note);
-
-        noteConnections.incoming.forEach(conn =>
-        {
-            conn.line.position();
-            updateLabelPosition(conn.source, note, conn.label);
-        });
-
-        noteConnections.outgoing.forEach(conn =>
-        {
-            conn.line.position();
-            updateLabelPosition(note, conn.target, conn.label);
-        });
-    }
-
-    // Modify the deleteButton click handler to remove labels
-    deleteButton.addEventListener('click', () =>
-    {
-        const noteConnections = connections.get(note);
-        noteConnections.incoming.forEach(conn =>
-        {
-            conn.line.remove();
-            conn.label.remove();  // Remove the label
-            const sourceConnections = connections.get(conn.source);
-            sourceConnections.outgoing = sourceConnections.outgoing.filter(out => out.target !== note);
-        });
-        noteConnections.outgoing.forEach(conn =>
-        {
-            conn.line.remove();
-            conn.label.remove();  // Remove the label
-            const targetConnections = connections.get(conn.target);
-            targetConnections.incoming = targetConnections.incoming.filter(incoming => incoming.source !== note);
-        });
-
-        connections.delete(note);
-        note.remove();
-    });
-</script>
+</html>

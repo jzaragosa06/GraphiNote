@@ -26,6 +26,11 @@ app.get("/lab", (req, res) =>
     res.sendFile(path.join(__dirname, "views", "index.html"));
 });
 
+app.get("/temp", (req, res) =>
+{
+    res.sendFile(path.join(__dirname, "views", "temp.html"));
+})
+
 app.listen(3000, () =>
 {
     console.log("listening on port 3000");

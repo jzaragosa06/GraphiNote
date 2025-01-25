@@ -15,10 +15,13 @@
   "license": "MIT",
   "description": "An interactive note app involving graphics and connections",
   "dependencies": {
+    "-": "^0.0.1",
+    "@editorjs/editorjs": "^2.30.7",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "interactive-note-prototye": "file:",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "save": "^2.9.0"
   }
 }

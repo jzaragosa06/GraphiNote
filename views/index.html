@@ -3,6 +3,7 @@
 
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
     <style>
         /* Previous styles remain the same */
         * {
@@ -375,6 +376,18 @@
             background: rgba(0, 0, 0, 0);
             border-radius: 0 8px 8px 0;
         }
+
+        .ce-block__content {
+            max-width: 100%;
+        }
+
+        .ce-toolbar__content {
+            max-width: 100%;
+        }
+
+        .codex-editor {
+            max-width: 100%;
+        }
     </style>
 </head>
 
@@ -395,7 +408,7 @@
         <button class="collapse-button">×</button>
         <div class="side-panel-content">
             <div class="side-panel-title" contenteditable="true"></div>
-            <div class="side-panel-body" contenteditable="true"></div>
+            <div id="side-panel-editor" class="side-panel-body"></div>
         </div>
     </div>
 
@@ -454,7 +467,7 @@
                 const noteData = {
                     id: note.id || Date.now(), // Assign a unique ID if not already present
                     title: note.querySelector('.note-title').textContent,
-                    content: note.querySelector('.note-content').textContent,
+                    content: note.editor ? note.editor.save() : null,
                     position: {
                         x: parseInt(note.style.left),
                         y: parseInt(note.style.top)
@@ -513,6 +526,25 @@
         const aiModal = document.getElementById('aiModal');
         let aiSourceNote = null;
 
+        // Initialize Editor.js for the side panel
+        const sidePanelEditor = new EditorJS({
+            holder: 'side-panel-editor',
+            tools: {
+                header: {
+                    class: Header,
+                    inlineToolbar: true
+                },
+                list: {
+                    class: List,
+                    inlineToolbar: true
+                },
+                paragraph: {
+                    class: Paragraph,
+                    inlineToolbar: true
+                }
+            }
+        });
+
         function getColorForOrigin(origin)
         {
             if (!originColors.has(origin))
@@ -552,8 +584,7 @@
 
             const content = document.createElement('div');
             content.className = 'note-content';
-            content.contentEditable = true;
-            content.textContent = 'Enter your text here...';
+            content.id = `editor-${note.id}`;
 
             const addButton = document.createElement('button');
             addButton.className = 'add-button';
@@ -578,6 +609,25 @@
             const resizeHandle = document.createElement('div');
             resizeHandle.className = 'resize-handle';
             note.appendChild(resizeHandle);
+
+            // Initialize Editor.js for the note content
+            note.editor = new EditorJS({
+                holder: content.id,
+                tools: {
+                    header: {
+                        class: Header,
+                        inlineToolbar: true
+                    },
+                    list: {
+                        class: List,
+                        inlineToolbar: true
+                    },
+                    paragraph: {
+                        class: Paragraph,
+                        inlineToolbar: true
+                    }
+                }
+            });
 
             // Add event listener for resizing
             resizeHandle.addEventListener('mousedown', (e) =>
@@ -607,7 +657,7 @@
             {
                 activeExpandedNote = note;
                 document.querySelector('.side-panel-title').textContent = title.textContent;
-                document.querySelector('.side-panel-body').textContent = content.textContent;
+                sidePanelEditor.render(note.editor.save());
                 sidePanel.classList.add('open');
             });
 
@@ -616,14 +666,6 @@
                 if (activeExpandedNote === note && sidePanel.classList.contains('open'))
                 {
                     document.querySelector('.side-panel-title').textContent = title.textContent;
-                }
-            });
-
-            content.addEventListener('input', () =>
-            {
-                if (activeExpandedNote === note && sidePanel.classList.contains('open'))
-                {
-                    document.querySelector('.side-panel-body').textContent = content.textContent;
                 }
             });
 
@@ -949,15 +991,6 @@
             {
                 activeExpandedNote.querySelector('.note-title').textContent =
                     document.querySelector('.side-panel-title').textContent;
-            }
-        });
-
-        document.querySelector('.side-panel-body').addEventListener('input', () =>
-        {
-            if (activeExpandedNote)
-            {
-                activeExpandedNote.querySelector('.note-content').textContent =
-                    document.querySelector('.side-panel-body').textContent;
             }
         });
 
