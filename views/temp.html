@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editor.js Demo</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -29,24 +30,6 @@
             min-height: 300px;
         }
 
-        .save-button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .save-button:hover {
-            background-color: #0056b3;
-        }
-
-        .output-container {
-            margin-top: 20px;
-        }
-
         pre {
             background: #f4f4f4;
             padding: 10px;
@@ -60,17 +43,15 @@
     <div class="editor-container">
         <h1>Editor.js Example</h1>
         <div id="editorjs"></div>
-        <button class="save-button" id="saveButton">Save Content</button>
-        <div class="output-container">
-            <h2>Saved Content</h2>
-            <pre id="output"></pre>
-        </div>
+
     </div>
 
     <!-- Editor.js and plugins -->
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
+    <script src="
+https://cdn.jsdelivr.net/npm/@editorjs/list@2.0.4/dist/editorjs-list.umd.min.js
+"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
@@ -84,7 +65,13 @@
                     class: Header,
                     inlineToolbar: ['link'],
                 },
-
+                list: {
+                    class: EditorjsList,
+                    inlineToolbar: true,
+                    config: {
+                        defaultStyle: 'unordered'
+                    },
+                },
                 quote: {
                     class: Quote,
                     inlineToolbar: true,
@@ -109,17 +96,7 @@
             },
         });
 
-        // Save content to the output container
-        document.getElementById('saveButton').addEventListener('click', () =>
-        {
-            editor.save().then((outputData) =>
-            {
-                document.getElementById('output').textContent = JSON.stringify(outputData, null, 2);
-            }).catch((error) =>
-            {
-                console.error('Saving failed: ', error);
-            });
-        });
+
     </script>
 </body>
 
