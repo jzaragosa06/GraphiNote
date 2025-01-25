@@ -4,11 +4,12 @@
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js"></script>
     <style>
-        /* Previous styles remain the same */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Arial', serif;
+
         }
 
         .sidebar {
@@ -50,7 +51,7 @@
 
         .note-container {
             position: absolute;
-            width: 220px;
+            width: 400px;
             border-radius: 8px;
             padding: 16px;
             margin: 20px;
@@ -220,80 +221,6 @@
             }
         }
 
-        .side-panel {
-            position: fixed;
-            right: -400px;
-            top: 0;
-            width: 400px;
-            height: 100vh;
-            background: #fff;
-            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-            transition: right 0.3s ease;
-            z-index: 2000;
-            padding: 20px;
-        }
-
-        .side-panel-content {
-            width: 100%;
-            height: calc(100% - 40px);
-            outline: none;
-            padding: 20px;
-        }
-
-        .side-panel-title {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 15px;
-            padding: 5px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            outline: none;
-        }
-
-        .side-panel-body {
-            padding: 5px;
-            outline: none;
-            height: calc(100% - 60px);
-        }
-
-        .side-panel.open {
-            right: 0;
-        }
-
-        .collapse-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #ff4d4d;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-
-        .expand-button {
-            position: absolute;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            color: white;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 18px;
-            border: none;
-            z-index: 100;
-            background: #2196F3;
-            top: -10px;
-            right: 80px;
-        }
-
-        .note-container:hover .expand-button {
-            display: flex;
-        }
-
-        /* Modal styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -364,7 +291,6 @@
             background: #e60000;
         }
 
-        /* Resize handle */
         .resize-handle {
             position: absolute;
             right: 0;
@@ -390,14 +316,6 @@
     </div>
 
     <div id="app"></div>
-
-    <div class="side-panel">
-        <button class="collapse-button">×</button>
-        <div class="side-panel-content">
-            <div class="side-panel-title" contenteditable="true"></div>
-            <div class="side-panel-body" contenteditable="true"></div>
-        </div>
-    </div>
 
     <!-- Modal for AI prompt -->
     <div class="modal-overlay" id="aiModal">
@@ -504,11 +422,6 @@
             { h: 60, s: 30, l: 90 },
         ];
 
-        const sidePanel = document.querySelector('.side-panel');
-        const sidePanelContent = document.querySelector('.side-panel-content');
-        const collapseButton = document.querySelector('.collapse-button');
-        let activeExpandedNote = null;
-
         // AI Modal related variables
         const aiModal = document.getElementById('aiModal');
         let aiSourceNote = null;
@@ -570,10 +483,7 @@
             deleteButton.textContent = '×';
             deleteButton.title = 'Delete note';
 
-            const expandButton = document.createElement('button');
-            expandButton.className = 'expand-button';
-            expandButton.textContent = '⤢';
-            expandButton.title = 'Expand note';
+
 
             const resizeHandle = document.createElement('div');
             resizeHandle.className = 'resize-handle';
@@ -603,30 +513,6 @@
                 document.addEventListener('mouseup', onMouseUp);
             });
 
-            expandButton.addEventListener('click', () =>
-            {
-                activeExpandedNote = note;
-                document.querySelector('.side-panel-title').textContent = title.textContent;
-                document.querySelector('.side-panel-body').textContent = content.textContent;
-                sidePanel.classList.add('open');
-            });
-
-            title.addEventListener('input', () =>
-            {
-                if (activeExpandedNote === note && sidePanel.classList.contains('open'))
-                {
-                    document.querySelector('.side-panel-title').textContent = title.textContent;
-                }
-            });
-
-            content.addEventListener('input', () =>
-            {
-                if (activeExpandedNote === note && sidePanel.classList.contains('open'))
-                {
-                    document.querySelector('.side-panel-body').textContent = content.textContent;
-                }
-            });
-
             aiButton.addEventListener('click', () =>
             {
                 aiSourceNote = note;
@@ -639,7 +525,6 @@
             note.appendChild(addButton);
             note.appendChild(aiButton);
             note.appendChild(deleteButton);
-            note.appendChild(expandButton);
             app.appendChild(note);
 
             dragHandle.addEventListener('mousedown', dragStart);
@@ -942,30 +827,6 @@
         document.addEventListener('mouseup', dragEnd);
 
         const firstNote = createNote(300, 100);
-
-        document.querySelector('.side-panel-title').addEventListener('input', () =>
-        {
-            if (activeExpandedNote)
-            {
-                activeExpandedNote.querySelector('.note-title').textContent =
-                    document.querySelector('.side-panel-title').textContent;
-            }
-        });
-
-        document.querySelector('.side-panel-body').addEventListener('input', () =>
-        {
-            if (activeExpandedNote)
-            {
-                activeExpandedNote.querySelector('.note-content').textContent =
-                    document.querySelector('.side-panel-body').textContent;
-            }
-        });
-
-        collapseButton.addEventListener('click', () =>
-        {
-            sidePanel.classList.remove('open');
-            activeExpandedNote = null;
-        });
 
         // AI Modal functions
         function openAIModal()
