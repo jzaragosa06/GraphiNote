@@ -361,12 +361,21 @@
             /* Give extra space for editing */
         }
 
-        /* Add styles for expanded and collapsed states */
         .note-container.collapsed .note-content {
-            max-height: 100px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            display: none;
+            /* Hide the content when collapsed */
+        }
+
+        .note-container.collapsed .drag-handle {
+            display: block;
+            /* Ensure these elements are visible when collapsed */
+        }
+
+        .note-container.collapsed {
+            height: auto;
+            /* Adjust height to fit only the visible elements */
+            padding-bottom: 10px;
+            /* Add some padding to make it look better */
         }
 
         .note-container.collapsed::after {
@@ -610,16 +619,17 @@
                 openAIModal();
             });
 
-            // Add event listener for expand/collapse button
             expandButton.addEventListener('click', () =>
             {
                 note.classList.toggle('collapsed');
                 if (note.classList.contains('collapsed'))
                 {
-                    expandButton.textContent = '↕';
+                    expandButton.textContent = '↕'; // Change button text to indicate collapsed state
+                    note.style.height = 'auto'; // Adjust height to fit only the visible elements
                 } else
                 {
-                    expandButton.textContent = '↕';
+                    expandButton.textContent = '↕'; // Change button text to indicate expanded state
+                    note.style.height = 'auto'; // Reset height to fit the content
                 }
             });
 
