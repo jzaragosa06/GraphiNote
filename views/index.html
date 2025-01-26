@@ -418,6 +418,112 @@
     </div>
 
     <script>
+        // Global state to hold all application data
+        const appState = {
+            notes: new Map(), // Map to hold all notes by their IDs
+            connections: new Map(), // Map to hold all connections
+            colorsEnabled: true, // Toggle for colors
+            baseColors: [
+                { h: 200, s: 30, l: 90 },
+                { h: 150, s: 30, l: 90 },
+                { h: 25, s: 30, l: 90 },
+                { h: 280, s: 30, l: 90 },
+                { h: 350, s: 30, l: 90 },
+                { h: 60, s: 30, l: 90 },
+            ],
+            colorIndex: 0,
+            originColors: new Map(), // Map to hold colors for origin notes
+        };
+
+        // Function to generate a unique ID
+        function generateId()
+        {
+            return `note-${Date.now()}`;
+        }
+
+        // Function to update the app state when a note is created
+        function updateNoteState(note)
+        {
+            const noteData = {
+                id: note.id,
+                title: note.querySelector('.note-title').textContent,
+                content: note.querySelector('.note-content').textContent,
+                position: {
+                    x: parseInt(note.style.left),
+                    y: parseInt(note.style.top)
+                },
+                size: {
+                    width: parseInt(note.style.width),
+                    height: parseInt(note.style.height)
+                },
+                collapsed: note.classList.contains('collapsed'),
+                color: note.style.backgroundColor,
+                originNote: note.originNote ? note.originNote.id : null
+            };
+            appState.notes.set(note.id, noteData);
+        }
+
+        // Function to update the app state when a connection is created
+        function updateConnectionState(from, to, label)
+        {
+            const connectionData = {
+                from: from.id,
+                to: to.id,
+                label: label.textContent
+            };
+            appState.connections.set(`${from.id}-${to.id}`, connectionData);
+        }
+
+        // Function to load the app state into the application
+        function loadAppState(state)
+        {
+            state.notes.forEach(noteData =>
+            {
+                const note = createNote(noteData.position.x, noteData.position.y, null, noteData.originNote);
+                note.id = noteData.id;
+                note.querySelector('.note-title').textContent = noteData.title;
+                note.querySelector('.note-content').textContent = noteData.content;
+                note.style.width = `${noteData.size.width}px`;
+                note.style.height = `${noteData.size.height}px`;
+                note.style.backgroundColor = noteData.color;
+                if (noteData.collapsed)
+                {
+                    note.classList.add('collapsed');
+                }
+            });
+
+            state.connections.forEach(connectionData =>
+            {
+                const fromNote = document.getElementById(connectionData.from);
+                const toNote = document.getElementById(connectionData.to);
+                if (fromNote && toNote)
+                {
+                    createConnection(fromNote, toNote, { label: connectionData.label });
+                }
+            });
+        }
+
+        // Function to generate the app state for saving
+        function generateAppState()
+        {
+            const state = {
+                notes: [],
+                connections: []
+            };
+
+            appState.notes.forEach(noteData =>
+            {
+                state.notes.push(noteData);
+            });
+
+            appState.connections.forEach(connectionData =>
+            {
+                state.connections.push(connectionData);
+            });
+
+            return state;
+        }
+
         const toggleLabelsBtn = document.getElementById('toggleLabels');
         toggleLabelsBtn.addEventListener('click', toggleLabelsVisibility);
 
@@ -445,51 +551,7 @@
                 toggleLabelsBtn.style.backgroundColor = '#808080'; // Gray when labels are hidden
             }
         }
-    </script>
 
-    <script>
-        function generateAppState()
-        {
-            const appState = {
-                notes: [],
-                connections: []
-            };
-
-            // Iterate over all note containers
-            document.querySelectorAll('.note-container').forEach(note =>
-            {
-                const noteData = {
-                    id: note.id || Date.now(), // Assign a unique ID if not already present
-                    title: note.querySelector('.note-title').textContent,
-                    content: note.querySelector('.note-content').textContent,
-                    position: {
-                        x: parseInt(note.style.left),
-                        y: parseInt(note.style.top)
-                    },
-                    originNote: note.originNote ? note.originNote.id : null
-                };
-                appState.notes.push(noteData);
-            });
-
-            // Iterate over all connections
-            connections.forEach((conn, note) =>
-            {
-                conn.outgoing.forEach(out =>
-                {
-                    const connectionData = {
-                        from: note.id || note.originNote.id,
-                        to: out.target.id || out.target.originNote.id,
-                        label: out.label.textContent
-                    };
-                    appState.connections.push(connectionData);
-                });
-            });
-
-            return appState;
-        }
-    </script>
-
-    <script>
         const app = document.getElementById('app');
         const addNewContainerBtn = document.getElementById('addNewContainer');
         const toggleColorsBtn = document.getElementById('toggleColors');
@@ -498,21 +560,9 @@
         let initialY = 0;
         let connectingMode = false;
         let sourceNote = null;
-        const connections = new Map();
 
-        const originColors = new Map();
-        let colorIndex = 0;
-
-        const baseColors = [
-            { h: 200, s: 30, l: 90 },
-            { h: 150, s: 30, l: 90 },
-            { h: 25, s: 30, l: 90 },
-            { h: 280, s: 30, l: 90 },
-            { h: 350, s: 30, l: 90 },
-            { h: 60, s: 30, l: 90 },
-        ];
-
-        let colorsEnabled = true;
+        let tempLine = null;
+        let startPoint = null;
 
         // AI Modal related variables
         const aiModal = document.getElementById('aiModal');
@@ -520,13 +570,13 @@
 
         function getColorForOrigin(origin)
         {
-            if (!originColors.has(origin))
+            if (!appState.originColors.has(origin))
             {
-                const baseColor = baseColors[colorIndex % baseColors.length];
-                originColors.set(origin, baseColor);
-                colorIndex++;
+                const baseColor = appState.baseColors[appState.colorIndex % appState.baseColors.length];
+                appState.originColors.set(origin, baseColor);
+                appState.colorIndex++;
             }
-            return originColors.get(origin);
+            return appState.originColors.get(origin);
         }
 
         function createNote(x, y, parentNote = null, originNote = null)
@@ -535,21 +585,16 @@
             note.className = 'note-container';
             note.style.left = `${x}px`;
             note.style.top = `${y}px`;
-            note.id = `note-${Date.now()}`;
+            note.id = generateId();
             note.originNote = originNote || note;
 
             const color = getColorForOrigin(note.originNote);
             note.style.backgroundColor = `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
 
-            if (!colorsEnabled)
+            if (!appState.colorsEnabled)
             {
                 note.classList.add('no-color');
             }
-
-            connections.set(note, {
-                incoming: [],
-                outgoing: []
-            });
 
             const dragHandle = document.createElement('div');
             dragHandle.className = 'drag-handle';
@@ -631,6 +676,7 @@
                     expandButton.textContent = '↕'; // Change button text to indicate expanded state
                     note.style.height = 'auto'; // Reset height to fit the content
                 }
+                updateNoteState(note);
             });
 
             note.appendChild(dragHandle);
@@ -696,30 +742,40 @@
                 );
 
                 createConnection(note, newNote);
-                console.log("new container from the preceding is created: ", generateAppState());
+                updateNoteState(note);
+                updateNoteState(newNote);
             });
 
             deleteButton.addEventListener('click', () =>
             {
-                const noteConnections = connections.get(note);
-                noteConnections.incoming.forEach(conn =>
+                const noteConnections = appState.connections.get(note.id);
+                if (noteConnections)
                 {
-                    conn.line.remove();
-                    conn.label.remove();  // Remove the label
-                    const sourceConnections = connections.get(conn.source);
-                    sourceConnections.outgoing = sourceConnections.outgoing.filter(out => out.target !== note);
-                });
-                noteConnections.outgoing.forEach(conn =>
-                {
-                    conn.line.remove();
-                    conn.label.remove();  // Remove the label
-                    const targetConnections = connections.get(conn.target);
-                    targetConnections.incoming = targetConnections.incoming.filter(incoming => incoming.source !== note);
-                });
+                    noteConnections.incoming.forEach(conn =>
+                    {
+                        conn.line.remove();
+                        conn.label.remove();  // Remove the label
+                        const sourceConnections = appState.connections.get(conn.source);
+                        if (sourceConnections)
+                        {
+                            sourceConnections.outgoing = sourceConnections.outgoing.filter(out => out.target !== note);
+                        }
+                    });
+                    noteConnections.outgoing.forEach(conn =>
+                    {
+                        conn.line.remove();
+                        conn.label.remove();  // Remove the label
+                        const targetConnections = appState.connections.get(conn.target);
+                        if (targetConnections)
+                        {
+                            targetConnections.incoming = targetConnections.incoming.filter(incoming => incoming.source !== note);
+                        }
+                    });
+                }
 
-                connections.delete(note);
+                appState.notes.delete(note.id);
+                appState.connections.delete(note.id);
                 note.remove();
-                console.log("container is deleted: ", generateAppState());
             });
 
             note.addEventListener('click', (e) =>
@@ -740,11 +796,9 @@
                 note.appendChild(point);
             });
 
+            updateNoteState(note);
             return note;
         }
-
-        let tempLine = null;
-        let startPoint = null;
 
         function startConnection(e)
         {
@@ -865,8 +919,8 @@
                 label.remove();
 
                 // Remove the connection from the connections map
-                const fromConnections = connections.get(from);
-                const toConnections = connections.get(to);
+                const fromConnections = appState.connections.get(from.id);
+                const toConnections = appState.connections.get(to.id);
 
                 if (fromConnections)
                 {
@@ -878,7 +932,7 @@
                     toConnections.incoming = toConnections.incoming.filter(incoming => incoming.source !== from);
                 }
 
-                console.log("connection is deleted: ", generateAppState());
+                appState.connections.delete(`${from.id}-${to.id}`);
             });
 
             document.body.appendChild(label);
@@ -893,13 +947,23 @@
                 {
                     label.textContent = 'Connection';
                 }
+                updateConnectionState(from, to, label);
             });
 
             // Store connection information
-            connections.get(from).outgoing.push({ target: to, line, label });
-            connections.get(to).incoming.push({ source: from, line, label });
+            if (!appState.connections.has(from.id))
+            {
+                appState.connections.set(from.id, { incoming: [], outgoing: [] });
+            }
+            if (!appState.connections.has(to.id))
+            {
+                appState.connections.set(to.id, { incoming: [], outgoing: [] });
+            }
 
-            console.log("connection is created: ", generateAppState());
+            appState.connections.get(from.id).outgoing.push({ target: to, line, label });
+            appState.connections.get(to.id).incoming.push({ source: from, line, label });
+
+            updateConnectionState(from, to, label);
         }
 
         function updateLabelPosition(from, to, label)
@@ -984,6 +1048,7 @@
             {
                 activeNote.classList.remove('dragging');
                 updateLines(activeNote);
+                updateNoteState(activeNote);
                 activeNote = null;
                 if (animationFrameId)
                 {
@@ -995,9 +1060,9 @@
 
         function updateLines(note)
         {
-            if (!note || !connections.has(note)) return;
+            if (!note || !appState.connections.has(note.id)) return;
 
-            const noteConnections = connections.get(note);
+            const noteConnections = appState.connections.get(note.id);
 
             noteConnections.incoming.forEach(conn =>
             {
@@ -1052,10 +1117,10 @@
         // Toggle colors functionality
         toggleColorsBtn.addEventListener('click', () =>
         {
-            colorsEnabled = !colorsEnabled;
+            appState.colorsEnabled = !appState.colorsEnabled;
             document.querySelectorAll('.note-container').forEach(note =>
             {
-                if (colorsEnabled)
+                if (appState.colorsEnabled)
                 {
                     note.classList.remove('no-color');
                     const color = getColorForOrigin(note.originNote);
@@ -1067,6 +1132,42 @@
                 }
             });
         });
+
+        // Example of loading a saved state
+        const savedState = {
+            notes: [
+                {
+                    id: 'note-1',
+                    title: 'Note 1',
+                    content: 'This is the content of note 1',
+                    position: { x: 300, y: 100 },
+                    size: { width: 400, height: 200 },
+                    collapsed: false,
+                    color: 'hsl(200, 30%, 90%)',
+                    originNote: null
+                },
+                {
+                    id: 'note-2',
+                    title: 'Note 2',
+                    content: 'This is the content of note 2',
+                    position: { x: 800, y: 150 },
+                    size: { width: 400, height: 200 },
+                    collapsed: false,
+                    color: 'hsl(150, 30%, 90%)',
+                    originNote: null
+                }
+            ],
+            connections: [
+                {
+                    from: 'note-1',
+                    to: 'note-2',
+                    label: 'Related'
+                }
+            ]
+        };
+
+        // Load the saved state
+        loadAppState(savedState);
     </script>
 </body>
 
