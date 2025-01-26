@@ -3,13 +3,14 @@
 
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js"></script>
-    <!-- Add Editor.js and plugins -->
+    <!-- Add Editor.js and its plugins -->
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@2.0.4/dist/editorjs-list.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
+
     <style>
         * {
             margin: 0;
@@ -58,8 +59,6 @@
         .note-container {
             position: absolute;
             width: 400px;
-            min-height: 200px;
-            /* Set minimum height */
             border-radius: 8px;
             padding: 16px;
             margin: 20px;
@@ -70,6 +69,7 @@
             white-space: normal;
             overflow: visible;
             border: 1px solid #00000037;
+            /* Add a thin black border */
         }
 
         .note-title {
@@ -87,8 +87,8 @@
             outline: none;
             padding: 5px;
             cursor: text;
-            min-height: 150px;
-            /* Set minimum height for content */
+            min-height: 100px;
+            /* Minimum height */
         }
 
         .note-container.dragging {
@@ -319,18 +319,6 @@
         .note-container.no-color .drag-handle {
             background: rgba(0, 0, 0, 0.1);
         }
-
-        /* Add specific styles for Editor.js blocks */
-        .codex-editor {
-            position: relative;
-            height: auto !important;
-            min-height: 100px;
-        }
-
-        .codex-editor__redactor {
-            padding-bottom: 10px !important;
-            /* Give extra space for editing */
-        }
     </style>
 </head>
 
@@ -508,7 +496,7 @@
             const content = document.createElement('div');
             content.className = 'note-content';
             content.contentEditable = true;
-
+            content.textContent = 'Enter your text here...';
 
             const addButton = document.createElement('button');
             addButton.className = 'add-button';
@@ -633,36 +621,6 @@
                 point.dataset.position = pos;
                 point.addEventListener('mousedown', startConnection);
                 note.appendChild(point);
-            });
-
-            // Initialize Editor.js for the note content
-            const editor = new EditorJS({
-                holder: content,
-                minHeight: 150,
-                autofocus: true,
-                placeholder: 'Enter your text here...',
-                tools: {
-                    header: {
-                        class: Header,
-                        inlineToolbar: ['link'],
-                    },
-                    list: {
-                        class: EditorjsList,
-                        inlineToolbar: true,
-                        config: {
-                            defaultStyle: 'unordered'
-                        },
-                    },
-                    image: {
-                        class: ImageTool,
-                        config: {
-                            endpoints: {
-                                byFile: 'http://localhost:3000/uploadFile', // Replace with your file upload endpoint
-                                byUrl: 'http://localhost:3000/fetchUrl', // Replace with your URL endpoint
-                            },
-                        },
-                    },
-                },
             });
 
             return note;
