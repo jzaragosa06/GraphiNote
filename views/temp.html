@@ -4,100 +4,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editor.js Demo</title>
-
+    <title>SimpleMDE Markdown Editor</title>
+    <!-- SimpleMDE CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
+            margin: 20px;
         }
 
-        .editor-container {
+        .editor {
             max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background: white;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-
-        #editorjs {
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 10px;
-            min-height: 100px;
-        }
-
-        pre {
-            background: #f4f4f4;
-            padding: 10px;
-            border-radius: 5px;
-            overflow-x: auto;
+            margin: 0 auto;
         }
     </style>
 </head>
 
 <body>
-    <div class="editor-container">
-        <h1>Editor.js Example</h1>
-        <div id="editorjs"></div>
 
+    <h1>SimpleMDE Markdown Editor</h1>
+    <div class="editor">
+        <textarea id="markdown-editor"></textarea>
     </div>
 
-    <!-- Editor.js and plugins -->
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
-    <script src="
-https://cdn.jsdelivr.net/npm/@editorjs/list@2.0.4/dist/editorjs-list.umd.min.js
-"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
-
+    <!-- SimpleMDE JS -->
+    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
     <script>
-        // Initialize Editor.js
-        const editor = new EditorJS({
-            holder: 'editorjs',
-            tools: {
-                header: {
-                    class: Header,
-                    inlineToolbar: ['link'],
-                },
-                list: {
-                    class: EditorjsList,
-                    inlineToolbar: true,
-                    config: {
-                        defaultStyle: 'unordered'
-                    },
-                },
-                quote: {
-                    class: Quote,
-                    inlineToolbar: true,
-                    config: {
-                        quotePlaceholder: 'Enter a quote',
-                        captionPlaceholder: "Author's name",
-                    },
-                },
-
-                code: {
-                    class: CodeTool
-                },
-                image: {
-                    class: ImageTool,
-                    config: {
-                        endpoints: {
-                            byFile: 'http://localhost:3000/uploadFile', // Replace with your file upload endpoint
-                            byUrl: 'http://localhost:3000/fetchUrl', // Replace with your URL endpoint
-                        },
-                    },
-                },
+        // Initialize SimpleMDE
+        var simplemde = new SimpleMDE({
+            element: document.getElementById("markdown-editor"),
+            spellChecker: false, // Disable spell checker
+            autosave: {
+                enabled: false,
+                uniqueId: "MyUniqueID",
+                delay: 1000,
             },
+            placeholder: "Type your markdown here...",
+            toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "preview", "side-by-side", "fullscreen", "|", "guide"]
         });
-
-
     </script>
+
 </body>
 
 </html>
