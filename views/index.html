@@ -229,6 +229,27 @@
             color: white;
         }
 
+        .delete-label-button {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            display: none;
+            /* Hidden by default */
+        }
+
+        .connection-label:hover .delete-label-button {
+            display: block;
+            /* Show on hover */
+        }
+
         @keyframes dashAnimation {
             from {
                 stroke-dashoffset: 10;
@@ -806,6 +827,50 @@
             label.className = 'connection-label';
             label.textContent = options.label || 'Relationship';
             label.contentEditable = true;
+
+            // Create delete button for the label
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-label-button';
+            deleteButton.textContent = '×';
+            deleteButton.title = 'Delete connection';
+            deleteButton.style.display = 'none'; // Hide by default
+            label.appendChild(deleteButton);
+
+            // Show delete button on label hover
+            label.addEventListener('mouseenter', () =>
+            {
+                deleteButton.style.display = 'block';
+            });
+
+            label.addEventListener('mouseleave', () =>
+            {
+                deleteButton.style.display = 'none';
+            });
+
+            // Delete the connection when the delete button is clicked
+            deleteButton.addEventListener('click', (e) =>
+            {
+                e.stopPropagation(); // Prevent label editing when clicking the delete button
+                line.remove();
+                label.remove();
+
+                // Remove the connection from the connections map
+                const fromConnections = connections.get(from);
+                const toConnections = connections.get(to);
+
+                if (fromConnections)
+                {
+                    fromConnections.outgoing = fromConnections.outgoing.filter(out => out.target !== to);
+                }
+
+                if (toConnections)
+                {
+                    toConnections.incoming = toConnections.incoming.filter(incoming => incoming.source !== from);
+                }
+
+                console.log("connection is deleted: ", generateAppState());
+            });
+
             document.body.appendChild(label);
 
             // Update label position initially
