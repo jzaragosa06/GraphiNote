@@ -118,7 +118,8 @@
         .add-button,
         .connect-button,
         .ai-button,
-        .delete-button {
+        .delete-button,
+        .expand-button {
             position: absolute;
             width: 24px;
             height: 24px;
@@ -151,9 +152,16 @@
             background: #ff4d4d;
         }
 
+        .expand-button {
+            top: -10px;
+            right: 80px;
+            background: #2196F3;
+        }
+
         .note-container:hover .add-button,
         .note-container:hover .ai-button,
-        .note-container:hover .delete-button {
+        .note-container:hover .delete-button,
+        .note-container:hover .expand-button {
             display: flex;
         }
 
@@ -330,6 +338,23 @@
         .codex-editor__redactor {
             padding-bottom: 5px !important;
             /* Give extra space for editing */
+        }
+
+        /* Add styles for expanded and collapsed states */
+        .note-container.collapsed .note-content {
+            max-height: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .note-container.collapsed::after {
+            content: '...';
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 20px;
+            color: #999;
         }
     </style>
 </head>
@@ -525,6 +550,11 @@
             deleteButton.textContent = '×';
             deleteButton.title = 'Delete note';
 
+            const expandButton = document.createElement('button');
+            expandButton.className = 'expand-button';
+            expandButton.textContent = '↕';
+            expandButton.title = 'Expand/Collapse note';
+
             const resizeHandle = document.createElement('div');
             resizeHandle.className = 'resize-handle';
             note.appendChild(resizeHandle);
@@ -559,12 +589,26 @@
                 openAIModal();
             });
 
+            // Add event listener for expand/collapse button
+            expandButton.addEventListener('click', () =>
+            {
+                note.classList.toggle('collapsed');
+                if (note.classList.contains('collapsed'))
+                {
+                    expandButton.textContent = '↕';
+                } else
+                {
+                    expandButton.textContent = '↕';
+                }
+            });
+
             note.appendChild(dragHandle);
             note.appendChild(title);
             note.appendChild(content);
             note.appendChild(addButton);
             note.appendChild(aiButton);
             note.appendChild(deleteButton);
+            note.appendChild(expandButton);
             app.appendChild(note);
 
             // Initialize Editor.js for the note content
@@ -614,8 +658,8 @@
             addButton.addEventListener('click', () =>
             {
                 const newNote = createNote(
-                    parseInt(note.style.left) + 250,
-                    parseInt(note.style.top),
+                    parseInt(note.style.left) + 500 + (Math.random() * 100),
+                    parseInt(note.style.top) + (Math.random() * 150),
                     note,
                     note.originNote
                 );
