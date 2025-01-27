@@ -23,3 +23,13 @@ this web application is built using Node.js. Express is used
 4. Expanded version of the content of container in the side-panel.
 
 #### Non-Functional Requirements
+
+1. 
+2. 
+3. 
+
+## Branch
+**tech debt 1**
+This branch saves that features of incorporating a text-block editor on the containers' content/body. 
+The succeeding changes in the main from now removes the editor.js to make the the code more manageable 
+built the prototye much faster
