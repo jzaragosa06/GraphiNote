@@ -29,7 +29,12 @@ app.get("/lab", (req, res) =>
 app.get("/temp", (req, res) =>
 {
     res.sendFile(path.join(__dirname, "views", "temp.html"));
-})
+});
+
+app.get("/text-block-editor", (req, res) =>
+{
+    res.sendFile(path.join(__dirname, "views", "extract_data.html"));
+});
 
 app.listen(3000, () =>
 {

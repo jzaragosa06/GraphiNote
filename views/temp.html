@@ -4,46 +4,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SimpleMDE Markdown Editor</title>
-    <!-- SimpleMDE CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
+    <title>TinyMCE Editor Example</title>
+    <!-- Include TinyMCE CSS and JS from CDN -->
+    <script src="https://cdn.tiny.cloud/1/kbhuj5kbg0di54ue8e9virsrbw7ufa005ttmtzrpdmvwh8nc/tinymce/7/tinymce.min.js"
+        referrerpolicy="origin"></script>
 
-        .editor {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-    </style>
 </head>
 
 <body>
+    <h1>TinyMCE Word Editor</h1>
+    <form>
+        <textarea id="myTextarea"></textarea>
+    </form>
 
-    <h1>SimpleMDE Markdown Editor</h1>
-    <div class="editor">
-        <textarea id="markdown-editor"></textarea>
-    </div>
-
-    <!-- SimpleMDE JS -->
-    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
     <script>
-        // Initialize SimpleMDE
-        var simplemde = new SimpleMDE({
-            element: document.getElementById("markdown-editor"),
-            spellChecker: false, // Disable spell checker
-            autosave: {
-                enabled: false,
-                uniqueId: "MyUniqueID",
-                delay: 1000,
-            },
-            placeholder: "Type your markdown here...",
-            toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "preview", "side-by-side", "fullscreen", "|", "guide"]
+        tinymce.init({
+            selector: '#myTextarea',
+            height: 500,
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'help', 'wordcount'
+            ],
+            toolbar: 'undo redo | blocks | ' +
+                'bold italic backcolor | alignleft aligncenter ' +
+                'alignright alignjustify | bullist numlist outdent indent | ' +
+                'removeformat | help',
+            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px }'
         });
-    </script>
 
+    </script>
 </body>
 
 </html>
