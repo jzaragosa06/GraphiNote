@@ -3,14 +3,6 @@
 
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js"></script>
-    <!-- Add Editor.js and its plugins -->
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@2.0.4/dist/editorjs-list.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
-
     <style>
         * {
             margin: 0;
@@ -341,6 +333,7 @@
             border-radius: 0 8px 8px 0;
         }
 
+
         .note-container.no-color {
             background-color: white !important;
         }
@@ -349,17 +342,6 @@
             background: rgba(0, 0, 0, 0.1);
         }
 
-        /* Add specific styles for Editor.js blocks */
-        .codex-editor {
-            position: relative;
-            height: auto !important;
-            min-height: 100px;
-        }
-
-        .codex-editor__redactor {
-            padding-bottom: 5px !important;
-            /* Give extra space for editing */
-        }
 
         .note-container.collapsed .note-content {
             display: none;
@@ -562,8 +544,8 @@
 
             const content = document.createElement('div');
             content.className = 'note-content';
-            content.id = `editorjs-${note.id}`; // Unique ID for each editor instance
-            note.appendChild(content);
+            content.contentEditable = true;
+            content.textContent = 'Enter your text here...';
 
             const addButton = document.createElement('button');
             addButton.className = 'add-button';
@@ -641,36 +623,6 @@
             note.appendChild(deleteButton);
             note.appendChild(expandButton);
             app.appendChild(note);
-
-            // Initialize Editor.js for the note content
-            const editor = new EditorJS({
-                holder: content.id,
-                minHeight: 150,
-                autofocus: true,
-                placeholder: 'Enter your text here...',
-                tools: {
-                    header: {
-                        class: Header,
-                        inlineToolbar: ['link'],
-                    },
-                    list: {
-                        class: EditorjsList,
-                        inlineToolbar: true,
-                        config: {
-                            defaultStyle: 'unordered'
-                        },
-                    },
-                    image: {
-                        class: ImageTool,
-                        config: {
-                            endpoints: {
-                                byFile: 'http://localhost:3000/uploadFile', // Replace with your file upload endpoint
-                                byUrl: 'http://localhost:3000/fetchUrl', // Replace with your URL endpoint
-                            },
-                        },
-                    },
-                },
-            });
 
             dragHandle.addEventListener('mousedown', dragStart);
 
@@ -1064,6 +1016,15 @@
                 {
                     note.classList.add('no-color');
                     note.style.backgroundColor = 'white';
+                }
+
+                if (colorsEnabled)
+                {
+                    toggleColorsBtn.style.backgroundColor = '#4CAF50'; // Blue when colors are shown
+                } else
+                {
+                    toggleColorsBtn.innerText = "show connection colors"
+                    toggleColorsBtn.style.backgroundColor = '#808080'; // Gray when colors are hidden
                 }
             });
         });
