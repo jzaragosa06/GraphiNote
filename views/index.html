@@ -28,20 +28,6 @@
             z-index: 1000;
         }
 
-        .word-editor {
-            position: fixed;
-            left: 200px;
-            top: 0;
-            width: 400px;
-            /* Fixed width for the word editor */
-            height: 100%;
-            background: #f8f9fa;
-            border-right: 1px solid #dee2e6;
-            padding: 20px;
-            z-index: 1000;
-            display: block;
-            /* Initially hidden */
-        }
 
         .sidebar-button {
             width: 100%;
@@ -388,6 +374,34 @@
             font-size: 20px;
             color: #999;
         }
+
+        .word-editor {
+            position: fixed;
+            left: 200px;
+            top: 0;
+            width: 600px;
+            height: 100vh;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            padding: 20px;
+            z-index: 1000;
+            display: none;
+        }
+
+        #app {
+            position: relative;
+            margin-left: 200px;
+            width: calc(100% - 200px);
+            height: 100vh;
+            overflow: auto;
+            padding: 20px;
+            transition: margin-left 0.3s, width 0.3s;
+        }
+
+        .editor-visible #app {
+            margin-left: 800px;
+            width: calc(100% - 800px);
+        }
     </style>
 </head>
 
@@ -404,14 +418,14 @@
         <button class="sidebar-button" id="toggleColors">
             Toggle Colors
         </button>
+
+        <button class="sidebar-button" id="toggleWordEditor">Toggle Word Editor</button>
+
     </div>
 
     <div class="word-editor">
         <textarea id="myTextarea"></textarea>
     </div>
-
-
-
 
     <div id="app"></div>
 
@@ -427,9 +441,15 @@
     </div>
 
     <script>
+
+        const toggleWordEditorBtn = document.getElementById('toggleWordEditor');
+        const wordEditor = document.querySelector('.word-editor');
+        let wordEditorVisible = false;
+
+
         tinymce.init({
             selector: '#myTextarea',
-            height: 500,
+            height: 800,
             plugins: [
                 'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
@@ -441,6 +461,25 @@
                 'removeformat | help',
             content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px }'
         });
+
+        document.getElementById('toggleWordEditor').addEventListener('click', function ()
+        {
+            const editor = document.getElementById('wordEditor');
+            document.body.classList.toggle('editor-visible');
+
+            if (wordEditorVisible)
+            {
+                //if visible -> revert
+                wordEditorVisible = false;
+                wordEditor.style.display = 'none';
+            }
+            else
+            {
+                wordEditorVisible = true;
+                wordEditor.style.display = 'block';
+            }
+        });
+
 
     </script>
 
