@@ -2,7 +2,10 @@
 
 **Interactive Note Web App: Prototype**
 
-An interactive note app involving text, graphics, and connections. 
+An interactive note app involving text, graphics, and connections.
+
+| ![Image 1](/public/screenshots/ss1.png) | ![Image 2](/public/screenshots/ss2.png) |
+| --------------------------------------- | --------------------------------------- |
 
 ### Tech Stack
 
