@@ -8,6 +8,10 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+
+//serve static files
+app.use(express.static(path.join(__dirname, "public")));
+
 //configuration of session middleware
 app.use(session({
     secret: process.env.SESSION_SECRET,
