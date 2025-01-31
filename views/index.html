@@ -31,6 +31,20 @@
             z-index: 1000;
         }
 
+        .word-editor {
+            position: fixed;
+            left: 100px;
+            top: 0;
+            width: 650px;
+            /* Fixed width for the word editor */
+            height: 100vh;
+            background: #f8f9fa;
+            border-right: 1px solid #00000037;
+            padding: 5px;
+            z-index: 1000;
+            display: none;
+            /* Initially hidden */
+        }
 
         .sidebar-button {
             display: flex;
@@ -47,7 +61,6 @@
             transition: background 0.3s;
             font-size: 24px;
         }
-
 
         .sidebar-button:hover {
             background: rgb(119, 43, 226);
@@ -382,34 +395,6 @@
             font-size: 20px;
             color: #999;
         }
-
-        .word-editor {
-            position: fixed;
-            left: 100px;
-            top: 0;
-            width: 600px;
-            height: 100vh;
-            background: #f8f9fa;
-            border-right: 1px solid #dee2e6;
-            padding: 20px;
-            z-index: 1000;
-            display: none;
-        }
-
-        #app {
-            position: relative;
-            margin-left: 100px;
-            width: calc(100% - 100px);
-            height: 100vh;
-            overflow: auto;
-            padding: 20px;
-            transition: margin-left 0.3s, width 0.3s;
-        }
-
-        .editor-visible #app {
-            margin-left: 700px;
-            width: calc(100% - 700px);
-        }
     </style>
 </head>
 
@@ -435,6 +420,9 @@
     <div class="word-editor">
         <textarea id="myTextarea"></textarea>
     </div>
+
+
+
 
     <div id="app"></div>
 
