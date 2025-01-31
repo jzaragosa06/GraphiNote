@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Leader-Line JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js"></script>
+
+    <!-- TinyMCE CSS and JS from CDN -->
+    <script src="https://cdn.tiny.cloud/1/kbhuj5kbg0di54ue8e9virsrbw7ufa005ttmtzrpdmvwh8nc/tinymce/7/tinymce.min.js"
+        referrerpolicy="origin"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', serif;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100px;
+            height: 100vh;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .sidebar-button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 50px;
+            height: 50px;
+            background: #442bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+            font-size: 24px;
+        }
+
+        .sidebar-button:hover {
+            background: rgb(119, 43, 226);
+        }
+
+        #app {
+            position: relative;
+            margin-left: 200px;
+            width: calc(100% - 200px);
+            height: 100vh;
+            overflow: auto;
+            padding: 20px;
+            transform-origin: 0 0;
+            /* Set the transform origin to top-left */
+            transition: transform 0.3s ease;
+        }
+
+        .note-container {
+            position: absolute;
+            width: 400px;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px;
+            user-select: none;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+            word-wrap: break-word;
+            white-space: normal;
+            overflow: visible;
+            border: 1px solid #00000037;
+        }
+
+        /* ... (rest of your CSS remains the same) ... */
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <button class="sidebar-button" id="addNewContainer" title="Add New Container">
+            <i class="fas fa-plus"></i>
+        </button>
+
+        <button class="sidebar-button" id="toggleLabels" title="Toggle Labels">
+            <i class="fas fa-tags"></i>
+        </button>
+
+        <button class="sidebar-button" id="toggleColors" title="Toggle Colors">
+            <i class="fas fa-palette"></i>
+        </button>
+
+        <button class="sidebar-button" id="toggleWordEditor" title="Toggle Word Editor">
+            <i class="fas fa-file-alt"></i>
+        </button>
+    </div>
+
+    <div class="word-editor">
+        <textarea id="myTextarea"></textarea>
+    </div>
+
+    <div id="app"></div>
+
+    <!-- Modal for AI prompt -->
+    <div class="modal-overlay" id="aiModal">
+        <div class="modal">
+            <textarea id="aiPrompt" placeholder="Enter your prompt..." rows="4" cols="30"></textarea>
+            <div class="modal-buttons">
+                <button class="cancel" onclick="closeAIModal()">Cancel</button>
+                <button class="submit" onclick="handleAISubmit()">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Zoom functionality
+        let scale = 1;
+        const app = document.getElementById('app');
+
+        function zoomIn()
+        {
+            scale += 0.1;
+            updateZoom();
+        }
+
+        function zoomOut()
+        {
+            scale -= 0.1;
+            if (scale < 0.1) scale = 0.1; // Prevent zooming out too much
+            updateZoom();
+        }
+
+        function updateZoom()
+        {
+            app.style.transform = `scale(${scale})`;
+            updateLines(); // Update all connection lines
+        }
+
+        // Keyboard shortcuts for zooming
+        document.addEventListener('keydown', (e) =>
+        {
+            if (e.ctrlKey && e.key === '+')
+            {
+                e.preventDefault();
+                zoomIn();
+            } else if (e.ctrlKey && e.key === '-')
+            {
+                e.preventDefault();
+                zoomOut();
+            }
+        });
+
+      
+
+    </script>
+</body>
+
+</html>
