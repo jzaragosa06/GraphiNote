@@ -68,7 +68,7 @@
 
         #app {
             position: relative;
-            margin-left: 200px;
+            margin-left: 100px;
             width: calc(100% - 200px);
             height: 100vh;
             overflow: auto;
@@ -443,6 +443,8 @@
         const wordEditor = document.querySelector('.word-editor');
         let wordEditorVisible = false;
 
+        //initial color of toggleWordEditorBtn
+        toggleWordEditorBtn.style.background = '#808080';
 
         tinymce.init({
             selector: '#myTextarea',
@@ -469,11 +471,14 @@
                 //if visible -> revert
                 wordEditorVisible = false;
                 wordEditor.style.display = 'none';
+                toggleWordEditorBtn.style.background = '#808080';
+
             }
             else
             {
                 wordEditorVisible = true;
                 wordEditor.style.display = 'block';
+                toggleWordEditorBtn.style.background = '#442bff';
             }
         });
 
