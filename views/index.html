@@ -594,6 +594,15 @@
                 return;
             }
 
+            if (tinymce.get('myTextarea').getContent() != "")
+            {
+                if (!confirm("This will over-write existing content in the word-editor. \nDo you wan to proceed?"))
+                {
+                    cancelProcess();
+                }
+            }
+
+
             let combinedContent = '';
             selectedContainers.forEach(container =>
             {
@@ -623,6 +632,8 @@
             wordEditorVisible = true;
             wordEditor.style.display = 'block';
             toggleWordEditorBtn.style.background = '#442bff';
+
+
         }
     </script>
 
