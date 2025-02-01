@@ -395,6 +395,42 @@
             font-size: 20px;
             color: #999;
         }
+
+
+        .note-container.selected {
+            box-shadow: 0 0 0 3px #2196F3;
+        }
+
+        .selection-ui {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 2000;
+        }
+
+        .selection-ui button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+
+        .selection-ui button.done {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .selection-ui button.done:hover {
+            background: #45a049;
+        }
     </style>
 </head>
 
@@ -414,6 +450,10 @@
 
         <button class="sidebar-button" id="toggleWordEditor" title="Toggle Word Editor">
             <i class="fas fa-file-alt"></i>
+        </button>
+
+        <button class="sidebar-button" id="combineIntoWord" title="Combine into Word">
+            <i class="fas fa-file-word"></i>
         </button>
     </div>
 
@@ -435,6 +475,11 @@
                 <button class="submit" onclick="handleAISubmit()">Submit</button>
             </div>
         </div>
+    </div>
+
+    <div class="selection-ui" id="selectionUI">
+        <span>Select containers to combine into Word. Click "Done" when finished.</span>
+        <button class="done" onclick="processSelectedContainers()">Done</button>
     </div>
 
     <script>
@@ -483,6 +528,79 @@
         });
 
 
+    </script>
+
+    <script>
+        // Existing JavaScript code remains unchanged until the end of the file
+
+        // New functionality for combining containers into Word
+        const combineIntoWordBtn = document.getElementById('combineIntoWord');
+        const selectionUI = document.getElementById('selectionUI');
+        let selectedContainers = new Set();
+
+        combineIntoWordBtn.addEventListener('click', () =>
+        {
+            // Enable selection mode
+            selectedContainers.clear();
+            selectionUI.style.display = 'block';
+            document.querySelectorAll('.note-container').forEach(container =>
+            {
+                container.style.cursor = 'pointer';
+                container.addEventListener('click', toggleContainerSelection);
+            });
+        });
+
+        function toggleContainerSelection(e)
+        {
+            const container = e.currentTarget;
+            if (selectedContainers.has(container))
+            {
+                selectedContainers.delete(container);
+                container.classList.remove('selected');
+            } else
+            {
+                selectedContainers.add(container);
+                container.classList.add('selected');
+            }
+        }
+
+        function processSelectedContainers()
+        {
+            if (selectedContainers.size === 0)
+            {
+                alert('Please select at least one container.');
+                return;
+            }
+
+            let combinedContent = '';
+            selectedContainers.forEach(container =>
+            {
+                const title = container.querySelector('.note-title').textContent;
+                const content = container.querySelector('.note-content').textContent;
+                combinedContent += `<h2>${title}</h2><p>${content}</p>`;
+            });
+
+            // Insert combined content into TinyMCE editor
+            tinymce.get('myTextarea').setContent(combinedContent);
+
+            // Reset selection mode
+            selectedContainers.forEach(container =>
+            {
+                container.classList.remove('selected');
+                container.removeEventListener('click', toggleContainerSelection);
+            });
+            selectedContainers.clear();
+            selectionUI.style.display = 'none';
+            document.querySelectorAll('.note-container').forEach(container =>
+            {
+                container.style.cursor = 'default';
+            });
+
+            // Show the word editor if it's hidden
+            wordEditorVisible = true;
+            wordEditor.style.display = 'block';
+            toggleWordEditorBtn.style.background = '#442bff';
+        }
     </script>
 
     <script>
