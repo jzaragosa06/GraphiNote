@@ -69,7 +69,7 @@
         #app {
             position: relative;
             margin-left: 100px;
-            width: calc(100% - 200px);
+            width: calc(100% - 100px);
             height: 100vh;
             overflow: auto;
             padding: 20px;
@@ -574,16 +574,16 @@
 
         function cancelProcess()
         {
-
-            console.log(`before cancel: ${selectedContainers}`);
             selectedContainers.clear();
             selectionUI.style.display = 'none';
 
             document.querySelectorAll(".note-container").forEach((container) =>
             {
                 container.classList.remove("selected");
+                container.removeEventListener('click', toggleContainerSelection);
+                container.style.cursor = 'default';
             });
-            console.log(`after cancel: ${selectedContainers}`)
+
         }
 
         function processSelectedContainers()
@@ -611,6 +611,7 @@
                 container.classList.remove('selected');
                 container.removeEventListener('click', toggleContainerSelection);
             });
+
             selectedContainers.clear();
             selectionUI.style.display = 'none';
             document.querySelectorAll('.note-container').forEach(container =>
