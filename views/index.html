@@ -431,6 +431,15 @@
         .selection-ui button.done:hover {
             background: #45a049;
         }
+
+        .selection-ui button.cancel {
+            background: #e2331cdd;
+            color: white;
+        }
+
+        .selection-ui button.cancel:hover {
+            background: #e2331c;
+        }
     </style>
 </head>
 
@@ -479,6 +488,7 @@
 
     <div class="selection-ui" id="selectionUI">
         <span>Select containers to combine into Word. Click "Done" when finished.</span>
+        <button class="cancel" onclick="cancelProcess()">Cancel</button>
         <button class="done" onclick="processSelectedContainers()">Done</button>
     </div>
 
@@ -531,8 +541,6 @@
     </script>
 
     <script>
-        // Existing JavaScript code remains unchanged until the end of the file
-
         // New functionality for combining containers into Word
         const combineIntoWordBtn = document.getElementById('combineIntoWord');
         const selectionUI = document.getElementById('selectionUI');
@@ -562,6 +570,20 @@
                 selectedContainers.add(container);
                 container.classList.add('selected');
             }
+        }
+
+        function cancelProcess()
+        {
+
+            console.log(`before cancel: ${selectedContainers}`);
+            selectedContainers.clear();
+            selectionUI.style.display = 'none';
+
+            document.querySelectorAll(".note-container").forEach((container) =>
+            {
+                container.classList.remove("selected");
+            });
+            console.log(`after cancel: ${selectedContainers}`)
         }
 
         function processSelectedContainers()
