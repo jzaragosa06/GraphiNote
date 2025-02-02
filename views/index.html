@@ -1229,8 +1229,8 @@
             }
 
             const newNote = createNote(
-                parseInt(aiSourceNote.style.left) + 250,
-                parseInt(aiSourceNote.style.top),
+                parseInt(aiSourceNote.style.left) + 500 + (Math.random() * 100),
+                parseInt(aiSourceNote.style.top) + (Math.random() * 150),
                 aiSourceNote,
                 aiSourceNote.originNote
             );
