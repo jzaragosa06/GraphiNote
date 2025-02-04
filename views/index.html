@@ -12,7 +12,6 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-
     <style>
         * {
             margin: 0;
@@ -43,9 +42,77 @@
             background: #f8f9fa;
             border-right: 1px solid #00000037;
             padding: 5px;
-            z-index: 1000;
+            z-index: 2000;
             display: none;
-            /* Initially hidden */
+
+
+        }
+
+        #word-editor-content-version {
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .version-button {
+            position: relative;
+            height: 32px;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            overflow: hidden;
+            margin-right: 8px;
+            width: 48px;
+        }
+
+        .version-button.active {
+            width: 192px;
+            background: #442bff;
+            color: white;
+            padding: 0 16px;
+        }
+
+        .version-button:not(.active) {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .version-button:not(.active):hover {
+            background: #e0e0e0;
+        }
+
+        .version-button .version-number {
+            font-size: 12px;
+        }
+
+        .version-button .version-details {
+            display: none;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .version-button.active .version-details {
+            display: flex;
+        }
+
+        .version-button.active .version-number {
+            display: none;
+        }
+
+        .version-button:not(.active)::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 16px;
+            background: #ddd;
         }
 
         .sidebar-button {
@@ -469,11 +536,11 @@
     </div>
 
     <div class="word-editor">
+        <div id="word-editor-content-version">
+
+        </div>
         <textarea id="myTextarea"></textarea>
     </div>
-
-
-
 
     <div id="app"></div>
 
@@ -494,8 +561,8 @@
         <button class="done" onclick="processSelectedContainers()">Done</button>
     </div>
 
+    <!-- word editor -->
     <script>
-
         const toggleWordEditorBtn = document.getElementById('toggleWordEditor');
         const wordEditor = document.querySelector('.word-editor');
         let wordEditorVisible = false;
@@ -505,11 +572,11 @@
 
         tinymce.init({
             selector: '#myTextarea',
-            height: 900,
+            height: '100%',
             plugins: [
                 'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                'insertdatetime', 'media', 'table', 'help', 'wordcount',
             ],
             toolbar: 'undo redo | blocks | ' +
                 'bold italic backcolor | alignleft aligncenter ' +
@@ -529,7 +596,6 @@
                 wordEditorVisible = false;
                 wordEditor.style.display = 'none';
                 toggleWordEditorBtn.style.background = '#808080';
-
             }
             else
             {
@@ -542,11 +608,14 @@
 
     </script>
 
+    <!-- combine into word feature -->
     <script>
-        // New functionality for combining containers into Word
         const combineIntoWordBtn = document.getElementById('combineIntoWord');
         const selectionUI = document.getElementById('selectionUI');
         let selectedContainers = new Set();
+
+        let wordEditorVersions = [];
+        let currentVersionIndex = -1;
 
         combineIntoWordBtn.addEventListener('click', () =>
         {
@@ -596,15 +665,6 @@
                 return;
             }
 
-            if (tinymce.get('myTextarea').getContent() != "")
-            {
-                if (!confirm("This will over-write existing content in the word-editor. \nDo you wan to proceed?"))
-                {
-                    cancelProcess();
-                }
-            }
-
-
             let combinedContent = '';
             selectedContainers.forEach(container =>
             {
@@ -613,14 +673,18 @@
                 combinedContent += `<h2>${title}</h2><p>${content}</p>`;
             });
 
+            //save the previous content
+            saveVersion(combinedContent);
+
             // Insert combined content into TinyMCE editor
             tinymce.get('myTextarea').setContent(combinedContent);
 
             // Reset selection mode
-            selectedContainers.forEach(container =>
+            document.querySelectorAll(".note-container").forEach((container) =>
             {
-                container.classList.remove('selected');
+                container.classList.remove("selected");
                 container.removeEventListener('click', toggleContainerSelection);
+                container.style.cursor = 'default';
             });
 
             selectedContainers.clear();
@@ -637,8 +701,58 @@
 
 
         }
+
+        function saveVersion(content)
+        {
+            wordEditorVersions.push({
+                timestamp: Date.now(),
+                content: content,
+            });
+
+            currentVersionIndex = wordEditorVersions.length - 1;
+            //update the ui
+            updateVersionUI();
+        }
+
+        function updateVersionUI()
+        {
+            const versionContainer = document.getElementById("word-editor-content-version");
+            versionContainer.innerHTML = '';
+
+            wordEditorVersions.forEach((version, index) =>
+            {
+                const button = document.createElement("button");
+                button.className = `version-button ${index === currentVersionIndex ? 'active' : ''}`;
+
+                const versionNumber = document.createElement("span");
+                versionNumber.className = "version-number";
+                versionNumber.textContent = index + 1;
+
+                const details = document.createElement("div");
+                details.className = "version-details";
+                details.innerHTML = `
+                                    <span>Version ${index + 1}</span>
+                                    <span>${new Date(version.timestamp).toLocaleDateString()}</span>
+                                    `;
+
+                button.appendChild(versionNumber);
+                button.appendChild(details);
+                button.addEventListener("click", () => loadVersion(index));
+
+                versionContainer.appendChild(button);
+            });
+        }
+
+        function loadVersion(index)
+        {
+            //update the current index
+            currentVersionIndex = index;
+            tinymce.get("myTextarea").setContent(wordEditorVersions[index].content)
+            updateVersionUI();
+        }
     </script>
 
+    <!-- toggle connection labels -->
     <script>
         const toggleLabelsBtn = document.getElementById('toggleLabels');
         toggleLabelsBtn.addEventListener('click', toggleLabelsVisibility);
@@ -668,12 +782,13 @@
         }
     </script>
 
+    <!-- generate app state -->
     <script>
         function generateAppState()
         {
             const appState = {
                 notes: [],
-                connections: []
+                connections: [],
             };
 
             // Iterate over all note containers

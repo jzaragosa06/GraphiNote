@@ -1,0 +1,496 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', serif;
+}
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100px;
+    height: 100vh;
+    background: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+    padding: 20px;
+    z-index: 1000;
+}
+
+.word-editor {
+    position: fixed;
+    left: 100px;
+    top: 0;
+    width: 650px;
+    /* Fixed width for the word editor */
+    height: 100vh;
+    background: #f8f9fa;
+    border-right: 1px solid #00000037;
+    padding: 5px;
+    z-index: 2000;
+    display: none;
+
+
+}
+
+#word-editor-content-version {
+    padding: 10px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.version-button {
+    position: relative;
+    height: 32px;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    overflow: hidden;
+    margin-right: 8px;
+    width: 48px;
+}
+
+.version-button.active {
+    width: 192px;
+    background: #442bff;
+    color: white;
+    padding: 0 16px;
+}
+
+.version-button:not(.active) {
+    background: #f0f0f0;
+    color: #666;
+}
+
+.version-button:not(.active):hover {
+    background: #e0e0e0;
+}
+
+.version-button .version-number {
+    font-size: 12px;
+}
+
+.version-button .version-details {
+    display: none;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 14px;
+}
+
+.version-button.active .version-details {
+    display: flex;
+}
+
+.version-button.active .version-number {
+    display: none;
+}
+
+.version-button:not(.active)::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 16px;
+    background: #ddd;
+}
+
+.sidebar-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px;
+    height: 50px;
+    background: #442bff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: background 0.3s;
+    font-size: 24px;
+}
+
+.sidebar-button:hover {
+    background: rgb(119, 43, 226);
+}
+
+#app {
+    position: relative;
+    margin-left: 100px;
+    width: calc(100% - 100px);
+    height: 100vh;
+    overflow: auto;
+    padding: 20px;
+}
+
+.note-container {
+    position: absolute;
+    width: 400px;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 20px;
+    user-select: none;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+    word-wrap: break-word;
+    white-space: normal;
+    overflow: visible;
+    border: 1px solid #00000037;
+    /* Add a thin black border */
+}
+
+.note-title {
+    outline: none;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    font-size: 1.1em;
+    padding: 5px;
+    cursor: text;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.note-content {
+    outline: none;
+    padding: 5px;
+    cursor: text;
+    min-height: 100px;
+    /* Minimum height */
+}
+
+.note-container.dragging {
+    cursor: grabbing;
+    opacity: 0.9;
+}
+
+.note-container.highlight-connectable {
+    box-shadow: 0 0 0 2px #4CAF50;
+}
+
+.drag-handle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 25px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 8px 8px 0 0;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 10px;
+}
+
+.add-button,
+.connect-button,
+.ai-button,
+.delete-button,
+.expand-button {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    color: white;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    border: none;
+    z-index: 100;
+}
+
+.add-button {
+    top: -10px;
+    right: -10px;
+    background: #4CAF50;
+}
+
+.ai-button {
+    top: -10px;
+    right: 20px;
+    background: #FFA500;
+}
+
+.delete-button {
+    top: -10px;
+    right: 50px;
+    background: #ff4d4d;
+}
+
+.expand-button {
+    top: -10px;
+    right: 80px;
+    background: #2196F3;
+}
+
+.note-container:hover .add-button,
+.note-container:hover .ai-button,
+.note-container:hover .delete-button,
+.note-container:hover .expand-button {
+    display: flex;
+}
+
+.connection-point {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #2196F3;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1000;
+    display: none;
+}
+
+.note-container:hover .connection-point {
+    display: block;
+}
+
+.connection-point.top {
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.connection-point.right {
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.connection-point.bottom {
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.connection-point.left {
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.temp-line {
+    position: absolute;
+    border: 2px dashed #2196F3;
+    pointer-events: none;
+    z-index: 999;
+    animation: dashAnimation 1s linear infinite;
+}
+
+.connection-label {
+    position: absolute;
+    background-color: rgb(224, 224, 224);
+    color: black;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: auto;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.connection-label:hover {
+    background-color: rgb(54, 98, 255);
+    color: white;
+}
+
+.delete-label-button {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    display: none;
+    /* Hidden by default */
+}
+
+.connection-label:hover .delete-label-button {
+    display: block;
+    /* Show on hover */
+}
+
+@keyframes dashAnimation {
+    from {
+        stroke-dashoffset: 10;
+    }
+
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.modal {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 350px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: none;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+}
+
+.modal textarea:focus {
+    border-color: #4CAF50;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.modal button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease;
+}
+
+.modal button.submit {
+    background: #4CAF50;
+    color: white;
+}
+
+.modal button.submit:hover {
+    background: #45a049;
+}
+
+.modal button.cancel {
+    background: #ff4d4d;
+    color: white;
+}
+
+.modal button.cancel:hover {
+    background: #e60000;
+}
+
+.resize-handle {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    cursor: ew-resize;
+    background: rgba(0, 0, 0, 0);
+    border-radius: 0 8px 8px 0;
+}
+
+
+.note-container.no-color {
+    background-color: white !important;
+}
+
+.note-container.no-color .drag-handle {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+
+.note-container.collapsed .note-content {
+    display: none;
+    /* Hide the content when collapsed */
+}
+
+.note-container.collapsed .drag-handle {
+    display: block;
+    /* Ensure these elements are visible when collapsed */
+}
+
+.note-container.collapsed {
+    height: auto;
+    /* Adjust height to fit only the visible elements */
+    padding-bottom: 10px;
+    /* Add some padding to make it look better */
+}
+
+.note-container.collapsed::after {
+    content: '...';
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 20px;
+    color: #999;
+}
+
+
+.note-container.selected {
+    box-shadow: 0 0 0 3px #2196F3;
+}
+
+.selection-ui {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: none;
+    z-index: 2000;
+}
+
+.selection-ui button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease;
+}
+
+.selection-ui button.done {
+    background: #4CAF50;
+    color: white;
+}
+
+.selection-ui button.done:hover {
+    background: #45a049;
+}
+
+.selection-ui button.cancel {
+    background: #e2331cdd;
+    color: white;
+}
+
+.selection-ui button.cancel:hover {
+    background: #e2331c;
+}

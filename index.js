@@ -33,7 +33,15 @@ app.get("/lab", (req, res) =>
 app.get("/temp", (req, res) =>
 {
     res.sendFile(path.join(__dirname, "views", "temp.html"));
-})
+});
+
+
+app.get("/word", (req, res) =>
+{
+    res.sendFile(path.join(__dirname, "views", "word.html"));
+});
+
+
 
 app.listen(3000, () =>
 {

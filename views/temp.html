@@ -9,6 +9,8 @@
     <script src="https://cdn.tiny.cloud/1/kbhuj5kbg0di54ue8e9virsrbw7ufa005ttmtzrpdmvwh8nc/tinymce/7/tinymce.min.js"
         referrerpolicy="origin"></script>
 
+
+
 </head>
 
 <body>
@@ -16,6 +18,11 @@
     <form>
         <textarea id="myTextarea"></textarea>
     </form>
+
+
+    <button id="getHTML">get html</button>
+    <button id="getDocx">get docx</button>
+
 
     <script>
         tinymce.init({
@@ -31,6 +38,17 @@
                 'alignright alignjustify | bullist numlist outdent indent | ' +
                 'removeformat | help',
             content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px }'
+        });
+
+        document.getElementById("getHTML").addEventListener("click", () =>
+        {
+            var htmlContent = tinymce.get('myTextarea').getContent();
+            console.log(htmlContent);
+        });
+
+        document.getElementById("getDocx").addEventListener("click", () =>
+        {
+
         });
 
     </script>
